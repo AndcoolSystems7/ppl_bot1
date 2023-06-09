@@ -25,6 +25,7 @@ from aiogram.types import ReplyKeyboardRemove, \
 from colorthief import ColorThief
 from datetime import datetime, date, time, timedelta  #Модуль времени
 import pytz
+import time as time1
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -595,7 +596,7 @@ async def from_f(message: CallbackQuery):
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 #---------------------------------------------------------------------------------------------------
-@dp.message_handler(content_types=['any'])
+@dp.message_handler(content_types=['text'])
 async def echo(message: types.Message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
@@ -658,4 +659,13 @@ async def echo(message: types.Message):
 
 if on_server: keep_alive()
 if __name__ == '__main__':
-	executor.start_polling(dp, skip_updates=True)
+	started = True
+	while started:
+		try:
+			executor.start_polling(dp, skip_updates=True)
+			started = False
+		except Exception:
+			started = True
+			print("An error has occurred, reboot in 10 seconds")
+			time1.sleep(10)
+			print("rebooting...")

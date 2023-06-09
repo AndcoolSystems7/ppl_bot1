@@ -1,6 +1,5 @@
 """
-This is a echo bot.
-It echoes any incoming text messages.
+Pepeland bondage bot
 """
 try: 
 	import replit

@@ -26,7 +26,7 @@ from colorthief import ColorThief
 from datetime import datetime, date, time, timedelta  #Модуль времени
 import pytz
 
-if on_server: API_TOKEN = '6121533259:AAGkmSVFcTPlikJWieOvL3IDtOi7qdWEYO8'
+if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 
 # Configure logging

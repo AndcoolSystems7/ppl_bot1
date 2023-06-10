@@ -190,7 +190,7 @@ class Client:
     
 def find_client(list, chat_id):
     if list == []: 
-        list = Client(chat_id)
+        list = [Client(chat_id)]
         id = 0
     else:
         finded = False

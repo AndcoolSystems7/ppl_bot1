@@ -1,5 +1,7 @@
 """
 Pepeland bondage bot
+Проект защищён авторским правом
+created by AndcoolSystems, 2023©
 """
 try: 
 	import replit

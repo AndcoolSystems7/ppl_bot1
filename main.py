@@ -466,7 +466,9 @@ async def from_f(message: CallbackQuery):
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
 
-	listOfClients[id].pose = not listOfClients[id].pose
+	listOfClients[id].pose += 1
+
+	if listOfClients[id].pose > len(listOfClients[id].poses[0]) - 1: listOfClients[id].pose = 0
 
 	skin_rer = await listOfClients[id].rerender()
 	skin_rer.save(f'1-{id1}.png')

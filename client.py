@@ -33,7 +33,6 @@ def fill(img, colour):
     rgb_im = img.convert('RGBA')
     w, h = img.size
     r_c, g_c, b_c = colour
-    colour1 = r_c, g_c, b_c, 255
     for y in range(h):
         for x in range(w):
             r, g, b, t = rgb_im.getpixel((x, y))
@@ -46,7 +45,7 @@ def fill(img, colour):
 
 def clear(img, pos):
     rgb_im = img.convert('RGBA')
-    w, h = 16, 4
+    w, h = img.size
     pos_x, pos_y = pos
     for y in range(h):
         for x in range(w):
@@ -76,7 +75,7 @@ class Client:
         self.overlay = True
         self.bw = False
         self.negative = False
-        self.pose = False
+        self.pose = 0
         self.bondg_color = (0, 0, 0)
         self.absolute_pos = 0
         #leftArm leftLeg rightArm rightLeg
@@ -84,6 +83,17 @@ class Client:
         self.y_f = [52, 52, 20, 20]
         self.x_o = [48, 0, 40, 0]
         self.y_o = [52, 52, 36, 36]
+
+        self.poses = [
+            [0,  20, 10, 0], #vrll
+            [0, -20,-10, 0], #vrrl
+            [0, -20,-10, 0], #vrla
+            [0,  20, 10, 0], #vrra
+            [0,   0,  0, 90], #hrla
+            [0,   0,  0, -90], #hrra
+
+        ]
+        
         
         
     async def init_mc_f(self, usr_img):
@@ -172,10 +182,18 @@ class Client:
         #self.skin_raw = self.first_skin1
 
         await self.mc_class.initialize()
-        if self.pose:
-            await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, vr=-20, ratio = 32, vrc = 15, vrll = 20, vrrl = -20, vrla = -20, vrra = 20)
-        else:
-            await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, vr=-20, ratio = 32, vrc = 15)
+        
+        await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
+                                             vr=-20, 
+                                             ratio = 32, 
+                                             vrc = 15, 
+                                             vrll=self.poses[0][self.pose], 
+                                             vrrl=self.poses[1][self.pose],
+                                             vrla=self.poses[2][self.pose],
+                                             vrra=self.poses[3][self.pose],
+                                             hrla=self.poses[4][self.pose],
+                                             hrra=self.poses[5][self.pose],
+                                             )
         img = self.mc_class.skin.skin
         
         new_img = None

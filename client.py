@@ -45,14 +45,11 @@ def fill(img, colour):
 
 def clear(img, pos):
     rgb_im = img.convert('RGBA')
-    w, h = img.size
+    w, h = 16, 4
     pos_x, pos_y = pos
     for y in range(h):
         for x in range(w):
-
-            try: 
-                
-                rgb_im.putpixel((x + pos_x, y + pos_y), (0, 0, 0, 0))
+            try: rgb_im.putpixel((x + pos_x, y + pos_y), (0, 0, 0, 0))
             except: pass
     return rgb_im
 
@@ -78,6 +75,8 @@ class Client:
         self.pose = 0
         self.bondg_color = (0, 0, 0)
         self.absolute_pos = 0
+        self.settings_mess = 0
+        self.change_e = 0
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
         self.y_f = [52, 52, 20, 20]

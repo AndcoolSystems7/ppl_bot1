@@ -411,6 +411,7 @@ async def start_set(message):
 
 	try: await listOfClients[id].info_id.delete()
 	except: pass
+	listOfClients[id].change_e = not listOfClients[id].change_e
 	listOfClients[id].delete_mess = True
 	txt11 = "Алекс" if listOfClients[id].slim else "Стив"
 	txt1 = f"Версия скина: {txt11}\n"
@@ -427,16 +428,24 @@ async def start_set(message):
 
 	txt14 = "Вкл" if listOfClients[id].bw else "Выкл"
 	txt15 = "Вкл" if listOfClients[id].negative else "Выкл"
-
+	e = "e" if listOfClients[id].change_e else "е"
 	txt3 = f"Оверлей: {txt12}\n"
 	txt4 = f"Первый слой: {txt13}\n"
-	txt5 = f"Чёрно-белый: {txt14}\n"
+	txt5 = f"Чёрно-б{e}лый: {txt14}\n"
 	txt6 = f"Негатив: {txt15}\n"
-	msg = await message.answer(
-		f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}",
-		reply_markup=keyboard3)
-	listOfClients[id].info_id = msg
-
+	if listOfClients[id].settings_mess == 0:
+		msg = await message.answer(
+			f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}",
+			reply_markup=keyboard3)
+		listOfClients[id].settings_mess = msg
+	else:
+		try:
+			
+			msg = await message.edit_text(
+				f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}",
+				reply_markup=keyboard3)
+			listOfClients[id].settings_mess = msg
+		except:pass
 
 @dp.callback_query_handler(text="up")
 async def from_f(message: CallbackQuery):
@@ -452,9 +461,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
@@ -474,9 +486,13 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+								 									
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
@@ -494,10 +510,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
-	os.remove(f'1-{id1}.png')
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	await start_set(message.message)
 
 
@@ -514,9 +532,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
@@ -534,9 +555,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
@@ -555,9 +579,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
@@ -574,9 +601,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
@@ -594,9 +624,12 @@ async def from_f(message: CallbackQuery):
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	listOfClients[id].prewiew_id = await message.message.answer_photo(
-		photo, "Вот предварительный просмотр")
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 #---------------------------------------------------------------------------------------------------

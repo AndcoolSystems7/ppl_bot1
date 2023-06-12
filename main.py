@@ -3,19 +3,21 @@ Pepeland bondage bot
 Проект защищён авторским правом
 created by AndcoolSystems, 2023©
 """
+
+import logging
+logging.basicConfig(level=logging.INFO)
 try: 
 	import replit
 	on_server = True
 except: on_server = False
 
 server_text = "replit" if on_server else "local"
-print(f"INFO:Running on {server_text} server")
+logging.info(f"Running on {server_text} server")
+#print(f"INFO:Running on {server_text} server")
 
 if on_server: from background import keep_alive
-import logging
+
 import client
-import minepi
-import PIL
 import os, io
 from PIL import Image, ImageDraw, ImageFont
 from aiogram import Bot, Dispatcher, executor, types
@@ -33,7 +35,7 @@ if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+
 
 # Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
@@ -181,7 +183,7 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	await listOfClients[id].info_id.delete()
+	
 	listOfClients[id].colour = 1
 
 	skin_rer = await listOfClients[id].rerender()
@@ -189,10 +191,14 @@ async def from_f(message: CallbackQuery):
 
 	photo = open(f'1-{id1}.png', 'rb')
 
-	await listOfClients[id].prewiew_id.delete()
-	msg = await message.message.answer_photo(photo,
-																					 "Вот предварительный просмотр")
-	listOfClients[id].prewiew_id = msg
+	
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
+	
 	os.remove(f'1-{id1}.png')
 	await acceptChoose(message.message)
 
@@ -203,7 +209,7 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	await listOfClients[id].info_id.delete()
+	
 	listOfClients[id].colour = 2
 
 	skin_rer = await listOfClients[id].rerender()
@@ -211,10 +217,11 @@ async def from_f(message: CallbackQuery):
 
 	photo = open(f'1-{id1}.png', 'rb')
 
-	await listOfClients[id].prewiew_id.delete()
-	msg = await message.message.answer_photo(photo,
-																					 "Вот предварительный просмотр")
-	listOfClients[id].prewiew_id = msg
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 
 	os.remove(f'1-{id1}.png')
 	await acceptChoose(message.message)
@@ -226,17 +233,19 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	await listOfClients[id].info_id.delete()
+
 	listOfClients[id].colour = 3
 
 	skin_rer = await listOfClients[id].rerender()
 	skin_rer.save(f'1-{id1}.png')
 
 	photo = open(f'1-{id1}.png', 'rb')
-	await listOfClients[id].prewiew_id.delete()
-	msg = await message.message.answer_photo(photo,
-																					 "Вот предварительный просмотр")
-	listOfClients[id].prewiew_id = msg
+
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 
 	os.remove(f'1-{id1}.png')
 	await acceptChoose(message.message)
@@ -248,7 +257,7 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	await listOfClients[id].info_id.delete()
+
 	listOfClients[id].colour = 4
 
 	skin_rer = await listOfClients[id].rerender()
@@ -256,10 +265,11 @@ async def from_f(message: CallbackQuery):
 
 	photo = open(f'1-{id1}.png', 'rb')
 
-	await listOfClients[id].prewiew_id.delete()
-	msg = await message.message.answer_photo(photo,
-																					 "Вот предварительный просмотр")
-	listOfClients[id].prewiew_id = msg
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
 	await acceptChoose(message.message)
 
@@ -305,8 +315,8 @@ async def acceptChoose(message):
 		# Создаем объект инлайн-клавиатуры
 	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_4], [big_button_5]])
-	msg = await message.answer("Готово?", reply_markup=keyboard1)
-	listOfClients[id].info_id = msg
+	await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
+	#listOfClients[id].info_id = msg
 	
 
 @dp.callback_query_handler(text="colD")
@@ -322,7 +332,6 @@ async def from_f(message: CallbackQuery):
 async def from_f(message: CallbackQuery):
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	await listOfClients[id].info_id.delete()
 	await start_set(message.message)
 #---------------------------------------------------------------------------------------------------
 async def colorDialog(message, id):
@@ -409,8 +418,7 @@ async def start_set(message):
 	keyboard3.row(big_button_2, big_button_5, big_button_11, big_button_8)
 	keyboard3.row(big_button_3, big_button_9, big_button_12, big_button_6)
 
-	try: await listOfClients[id].info_id.delete()
-	except: pass
+	
 	listOfClients[id].change_e = not listOfClients[id].change_e
 	listOfClients[id].delete_mess = True
 	txt11 = "Алекс" if listOfClients[id].slim else "Стив"
@@ -433,19 +441,14 @@ async def start_set(message):
 	txt4 = f"Первый слой: {txt13}\n"
 	txt5 = f"Чёрно-б{e}лый: {txt14}\n"
 	txt6 = f"Негатив: {txt15}\n"
-	if listOfClients[id].settings_mess == 0:
-		msg = await message.answer(
+	
+	try:
+			
+		msg = await listOfClients[id].info_id.edit_text(
 			f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}",
 			reply_markup=keyboard3)
-		listOfClients[id].settings_mess = msg
-	else:
-		try:
-			
-			msg = await message.edit_text(
-				f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}",
-				reply_markup=keyboard3)
-			listOfClients[id].settings_mess = msg
-		except:pass
+
+	except:pass
 
 @dp.callback_query_handler(text="up")
 async def from_f(message: CallbackQuery):

@@ -98,6 +98,7 @@ class Client:
         self.absolute_pos = 0
         self.settings_mess = 0
         self.change_e = 0
+        self.bandage = None
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
         self.y_f = [52, 52, 20, 20]
@@ -174,18 +175,22 @@ class Client:
             img_pod = fill(img_pod.copy(), self.colour_list[self.colour])
 
             img.paste(img_pod, (0, 0), img_pod)
+
+            
             sl = self.slim and (self.absolute_pos == 0)
             if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)
             if self.overlay: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)
 
             
-            
+            bond = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
             if self.first_layer == 1: 
                 img_lining = Image.open("res/lining/custom.png")
                 img_lining = fill(img_lining.copy(), self.colour_list[self.colour])
                 self.skin_raw.paste(img_lining.crop((1, 0, 16, 4)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((1, 0, 16, 4)) if sl else img_lining)
+                bond.paste(img_lining, (0, 0), img_lining)
+            bond.paste(img, (0, 0), img)
+            self.bandage = bond
 
-            
             img.close()
         if self.bw: 
             self.skin_raw = self.skin_raw.convert('LA').copy()

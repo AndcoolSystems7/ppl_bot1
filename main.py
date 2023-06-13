@@ -48,8 +48,13 @@ async def send_welcome(message: types.Message):
 	text1 = "PPL повязка - это бот, созданный для наложения повязки ПепеЛенда на ваш скин.\n"
 	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
 	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд AndcoolSystems#4320\n\n"
+	if on_server:
+		f = open("pyproject.toml")
+		ver = f.read().split("\n")[2][11:-1]
+		text5 = f"Версия *{ver}*\n"
+	else: text5 = ""
 	text4 = "*Created by AndcoolSystems*"
-	await message.answer(text=text1+text2+text3+text4, parse_mode= 'Markdown')
+	await message.answer(text=text1+text2+text3+text5+text4, parse_mode= 'Markdown')
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 	now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
@@ -385,6 +390,15 @@ async def from_f(message: CallbackQuery):
 	listOfClients.pop(id)
 
 
+@dp.callback_query_handler(text="bandage_dwnd")
+async def from_f(message: CallbackQuery):
+	global listOfClients
+	id1 = message.message.chat.id
+	id = client.find_client(listOfClients, message.message.chat.id)
+	listOfClients[id].bandage.save("3" + f'{id1}.png')
+	await message.message.answer_document(open("3" + f'{id1}.png', "rb"))
+	os.remove("3" + f'{id1}.png')
+
 #---------------------------------------------------------------------------------------------------
 async def start_set(message):
 	global listOfClients
@@ -419,7 +433,7 @@ async def start_set(message):
 		text='Тип пепе', callback_data='pepe')
 	
 	big_button_12: InlineKeyboardButton = InlineKeyboardButton(
-		text='-', callback_data='passs')
+		text='Скачать повязку', callback_data='bandage_dwnd')
 
 	big_button_6: InlineKeyboardButton = InlineKeyboardButton(
 		text='Готово ✓', callback_data='done')

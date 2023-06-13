@@ -43,6 +43,13 @@ dp = Dispatcher(bot)
 listOfClients = []
 
 
+@dp.message_handler(commands=['help'])
+async def send_welcome(message: types.Message):
+	text1 = "PPL повязка - это бот, созданный для наложения повязки ПепеЛенда на ваш скин.\n"
+	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
+	text3 = "При возникновении вопросов или ошибок опращайтесь в Дискорд AndcoolSystems#4320\n\n"
+	text4 = "*Created by AndcoolSystems*"
+	await message.answer(text=text1+text2+text3+text4, parse_mode= 'Markdown')
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 	now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
@@ -307,7 +314,7 @@ async def acceptChoose(message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
 	big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-			text='Готово', callback_data='done_d')
+			text='Готово ✓', callback_data='done_d')
 
 	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 		text='Изменить цвет', callback_data='colD')
@@ -323,9 +330,9 @@ async def acceptChoose(message):
 async def from_f(message: CallbackQuery):
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	await listOfClients[id].info_id.delete()
+	
 	msg = await colorDialog(message.message, id)
-	listOfClients[id].info_id = msg
+	
 	
 
 @dp.callback_query_handler(text="done_d")
@@ -357,7 +364,12 @@ async def colorDialog(message, id):
 										 [big_button_3],
 											[big_button_4], 
 											[big_button_5]])
-	msg = await message.answer("Теперь выбери цвет повязки",
+	
+	if listOfClients[id].info_id == 0:
+		msg = await message.answer("Теперь выбери цвет повязки",
+															reply_markup=keyboard1)
+	else:
+		msg = await listOfClients[id].info_id.edit_text("Теперь выбери цвет повязки",
 															reply_markup=keyboard1)
 	return msg
 #---------------------------------------------------------------------------------------------------
@@ -404,13 +416,13 @@ async def start_set(message):
 		text='Часть тела', callback_data='body_part')
 	
 	big_button_11: InlineKeyboardButton = InlineKeyboardButton(
-		text='-', callback_data='passs')
+		text='Тип пепе', callback_data='pepe')
 	
 	big_button_12: InlineKeyboardButton = InlineKeyboardButton(
 		text='-', callback_data='passs')
 
 	big_button_6: InlineKeyboardButton = InlineKeyboardButton(
-		text='Готово', callback_data='done')
+		text='Готово ✓', callback_data='done')
 
 	# Создаем объект инлайн-клавиатуры
 	keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
@@ -629,6 +641,23 @@ async def from_f(message: CallbackQuery):
 	photo = open(f'1-{id1}.png', 'rb')
 	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
 
+
+@dp.callback_query_handler(text="pepe")
+async def from_f(message: CallbackQuery):
+	id1 = message.message.chat.id
+	global listOfClients
+	id = client.find_client(listOfClients, message.message.chat.id)
+
+	listOfClients[id].pepe_type += 1
+
+	if listOfClients[id].pepe_type > len(listOfClients[id].pepes) - 1: listOfClients[id].pepe_type = 0
+
+	skin_rer = await listOfClients[id].rerender()
+	skin_rer.save(f'1-{id1}.png')
+
+	photo = open(f'1-{id1}.png', 'rb')
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
 	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
 							     chat_id=listOfClients[id].prewiew_id.chat.id,
 								 message_id=listOfClients[id].prewiew_id.message_id)
@@ -664,7 +693,7 @@ async def echo(message: types.Message):
 			await message.answer("Аккаунт с таким именем не найден(")
 	if listOfClients[id].wait_to_file == 3:
 		try:
-			await listOfClients[id].info_id.delete()
+			
 			msg_c = message.text.lstrip('#')
 			colour = tuple(int(msg_c[i:i + 2], 16) for i in (0, 2, 4))
 			listOfClients[id].bondg_color = colour
@@ -675,21 +704,24 @@ async def echo(message: types.Message):
 
 			skin_rer.save(f'1-{id1}.png')
 			photo = open(f'1-{id1}.png', 'rb')
-			await listOfClients[id].prewiew_id.delete()
-			msg = await message.answer_photo(photo, "Вот предварительный просмотр")
-			listOfClients[id].prewiew_id = msg
+			photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+			try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+										chat_id=listOfClients[id].prewiew_id.chat.id,
+										message_id=listOfClients[id].prewiew_id.message_id)
+			except:pass
 			photo.close()
 
 			big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-				text='Готово', callback_data='done_c')
+				text='Готово ✓', callback_data='done_c')
 
 			big_button_5: InlineKeyboardButton = InlineKeyboardButton(
-				text='Изменить цвет', callback_data='custom')
+				text='Изменить цвет', callback_data='colD')
 
 			# Создаем объект инлайн-клавиатуры
 			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 				inline_keyboard=[[big_button_4], [big_button_5]])
-			msg = await message.answer("Готово?", reply_markup=keyboard1)
+			msg = await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
 			os.remove(f'1-{id1}.png')
 			listOfClients[id].info_id = msg
 

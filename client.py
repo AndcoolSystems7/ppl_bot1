@@ -1,5 +1,7 @@
 from minepi import Player
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
+from os import listdir
+from os.path import isfile, join
 
 
 def transparent_negative(img):
@@ -53,6 +55,25 @@ def clear(img, pos):
             except: pass
     return rgb_im
 
+def crop(image, abs, slim):
+    new_img = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
+    img = Image.open(image).convert("RGBA")
+    if abs > 1: 
+        if abs == 2 and slim:
+            img_less = img.crop((0, 0, 1, 5))
+            img_h = img.crop((1, 0, 6, 4))
+            new_img.paste(img_less, (13, 0), img_less)
+            new_img.paste(img_h, (0, 0), img_h)
+        else:
+            img_less = img.crop((0, 0, 1, 5))
+            
+            img_h = img.crop((1, 0, 6, 4))
+            new_img.paste(img_less, (15, 0), img_less)
+            new_img.paste(img_h, (0, 0), img_h)
+    else:
+        new_img.paste(img, (7, 0), img)
+    return new_img
+
 class Client:
     def __init__(self, chat_id):
         self.chat_id = chat_id
@@ -83,6 +104,9 @@ class Client:
         self.x_o = [48, 0, 40, 0]
         self.y_o = [52, 52, 36, 36]
 
+        self.pepes = [f for f in listdir("res/pepes") if isfile(join("res/pepes", f))]
+        self.pepe_type = 0
+
         self.poses = [
             [0,  20, 10, 0], #vrll
             [0, -20,-10, 0], #vrrl
@@ -90,7 +114,8 @@ class Client:
             [0,  20, 10, 0], #vrra
             [0,   0,  0, 90], #hrla
             [0,   0,  0, -90], #hrra
-
+            [0,   0,  0, 20], #hrll
+            [0,   0,  0, -20] #hrrl
         ]
         
         
@@ -125,7 +150,7 @@ class Client:
         self.slim = self.mc_class.skin.is_slim
         await mc_class.initialize()
         
-        await mc_class.skin.render_skin(hr=-45, vr=-20, ratio = 32, vrc = 15)
+        await mc_class.skin.render_skin(hr=-45, vr=-20, ratio = 20, vrc = 15)
         img = mc_class.skin.skin
         self.average_col = average_colour(img.copy())
         
@@ -135,16 +160,14 @@ class Client:
         self.skin_raw = self.first_skin1.copy()
         if self.colour != 0:
             self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
+
+            img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
             if self.absolute_pos > 1: 
                 if self.absolute_pos == 2 and self.slim:
-                    img = Image.open("res/pepe_right_arm.png")
                     img_pod = Image.open("res/custom_right_arm.png")
                 else:
-                    img = Image.open("res/pepe_right.png")
                     img_pod = Image.open("res/custom_right.png")
-
             else:
-                img = Image.open("res/pepe.png")
                 img_pod = Image.open("res/custom.png")
             
             self.colour_list[5] = self.bondg_color
@@ -164,13 +187,11 @@ class Client:
 
             
             img.close()
-        self.mc_class = None
         if self.bw: 
             self.skin_raw = self.skin_raw.convert('LA').copy()
             enhancer = ImageEnhance.Contrast(self.skin_raw)
             factor = 1.5 
             self.skin_raw = enhancer.enhance(factor)
-
 
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)
@@ -178,13 +199,11 @@ class Client:
             average_col = 255 - r, 255 - g, 255 - b
         else: average_col = self.average_col
         self.mc_class = Player(name="abc", raw_skin=self.skin_raw)  # create a Player object by UUID
-        #self.skin_raw = self.first_skin1
-
         await self.mc_class.initialize()
         
         await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
                                              vr=-20, 
-                                             ratio = 32, 
+                                             ratio = 20, 
                                              vrc = 15, 
                                              vrll=self.poses[0][self.pose], 
                                              vrrl=self.poses[1][self.pose],
@@ -192,6 +211,8 @@ class Client:
                                              vrra=self.poses[3][self.pose],
                                              hrla=self.poses[4][self.pose],
                                              hrra=self.poses[5][self.pose],
+                                             hrll=self.poses[6][self.pose],
+                                             hrrl=self.poses[7][self.pose]
                                              )
         img = self.mc_class.skin.skin
         

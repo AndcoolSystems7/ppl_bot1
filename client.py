@@ -132,13 +132,15 @@ class Client:
         
 
     async def init_mc_n(self, name):
-        done = True
+        done = 1
         self.mc_class = Player(name=name)  # create a Player object by UUID
         await self.mc_class.initialize()
-        if self.mc_class._raw_skin == None: done = False
+        if self.mc_class._raw_skin == None: done = 0
         else:
             self.skin_raw = self.mc_class._raw_skin
             self.first_skin1 = self.mc_class._raw_skin.copy()
+            w, h = self.skin_raw.size
+            if w == 64 and h == 32: done = 2
         return done
         
 

@@ -52,6 +52,7 @@ async def send_welcome(message: types.Message):
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
 		text5 = f"Версия *{ver}*\n"
+		f.close()
 	else: text5 = ""
 	text4 = "*Created by AndcoolSystems*"
 	await message.answer(text=text1+text2+text3+text5+text4, parse_mode= 'Markdown')
@@ -545,6 +546,7 @@ async def from_f(message: CallbackQuery):
 							     chat_id=listOfClients[id].prewiew_id.chat.id,
 								 message_id=listOfClients[id].prewiew_id.message_id)
 	except:pass
+	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
 
@@ -655,6 +657,8 @@ async def from_f(message: CallbackQuery):
 	photo = open(f'1-{id1}.png', 'rb')
 	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
 
+	os.remove(f'1-{id1}.png')
+
 
 @dp.callback_query_handler(text="pepe")
 async def from_f(message: CallbackQuery):
@@ -687,7 +691,7 @@ async def echo(message: types.Message):
 	#if listOfClients[id].delete_mess: await message.delete()
 	if listOfClients[id].wait_to_file == 2:
 		done = await listOfClients[id].init_mc_n(message.text)
-		if done:
+		if done == 1:
 			listOfClients[id].wait_to_file = 0
 
 			await listOfClients[id].prerender()
@@ -703,6 +707,9 @@ async def echo(message: types.Message):
 			msg = await colorDialog(message, id)
 			os.remove(f'1-{id1}.png')
 			listOfClients[id].info_id = msg
+
+		elif done == 2: await message.answer("Извините, скины до версии 1.8 не поддерживаются(")
+
 		else:
 			await message.answer("Аккаунт с таким именем не найден(")
 	if listOfClients[id].wait_to_file == 3:

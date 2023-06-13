@@ -47,7 +47,7 @@ listOfClients = []
 async def send_welcome(message: types.Message):
 	text1 = "PPL повязка - это бот, созданный для наложения повязки ПепеЛенда на ваш скин.\n"
 	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
-	text3 = "При возникновении вопросов или ошибок опращайтесь в Дискорд AndcoolSystems#4320\n\n"
+	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд AndcoolSystems#4320\n\n"
 	text4 = "*Created by AndcoolSystems*"
 	await message.answer(text=text1+text2+text3+text4, parse_mode= 'Markdown')
 @dp.message_handler(commands=['start'])

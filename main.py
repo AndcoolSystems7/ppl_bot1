@@ -190,40 +190,18 @@ async def handle_docs_photo(message: types.Message):
 
 
 #---------------------------------------------------------------------------------------------------
-@dp.callback_query_handler(text="red")
+colour_txt = ["blue", "yellow", "green", "red", "pink", "violet", "orange", "black", "white"]
+@dp.callback_query_handler(text=colour_txt)
 async def from_f(message: CallbackQuery):
 
 	id1 = message.message.chat.id
 	global listOfClients
+	global colour_txt
 	id = client.find_client(listOfClients, message.message.chat.id)
-	
-	listOfClients[id].colour = 1
-
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-
-	
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	
-	os.remove(f'1-{id1}.png')
-	await acceptChoose(message.message)
 
 
-@dp.callback_query_handler(text="green")
-async def from_f(message: CallbackQuery):
-
-	id1 = message.message.chat.id
-	global listOfClients
-	id = client.find_client(listOfClients, message.message.chat.id)
-	
-	listOfClients[id].colour = 2
+	colours = [(61, 58, 201), (250, 213, 30), (85, 163, 64), (176, 30, 30), (252, 15, 192), (105, 0, 198), (255, 102, 0), (0, 0, 0), (255, 255, 255)]
+	listOfClients[id].colour = colours[colour_txt.index(message.data)]
 
 	skin_rer = await listOfClients[id].rerender()
 	skin_rer.save(f'1-{id1}.png')
@@ -239,52 +217,6 @@ async def from_f(message: CallbackQuery):
 	os.remove(f'1-{id1}.png')
 	await acceptChoose(message.message)
 
-
-@dp.callback_query_handler(text="blue")
-async def from_f(message: CallbackQuery):
-
-	id1 = message.message.chat.id
-	global listOfClients
-	id = client.find_client(listOfClients, message.message.chat.id)
-
-	listOfClients[id].colour = 3
-
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-
-	os.remove(f'1-{id1}.png')
-	await acceptChoose(message.message)
-
-
-@dp.callback_query_handler(text="yellow")
-async def from_f(message: CallbackQuery):
-
-	id1 = message.message.chat.id
-	global listOfClients
-	id = client.find_client(listOfClients, message.message.chat.id)
-
-	listOfClients[id].colour = 4
-
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
-	await acceptChoose(message.message)
 
 
 @dp.callback_query_handler(text="done_c")
@@ -325,11 +257,9 @@ async def acceptChoose(message):
 	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 		text='Изменить цвет', callback_data='colD')
 
-		# Создаем объект инлайн-клавиатуры
 	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_4], [big_button_5]])
 	await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
-	#listOfClients[id].info_id = msg
 	
 
 @dp.callback_query_handler(text="colD")
@@ -359,17 +289,33 @@ async def colorDialog(message, id):
 		text='Зелёный', callback_data='green')
 	big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 		text='Жёлтый', callback_data='yellow')
+	
+	pink_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Розовый', callback_data='pink')
+	
+	violet_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Фиолетовый', callback_data='violet')
+	
+	orange_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Оранжевый', callback_data='orange')
+	
+	white_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Белый', callback_data='white')
+	
+	black_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Чёрный', callback_data='black')
 
-	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+	custom_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Кастомный', callback_data='custom')
 
 			# Создаем объект инлайн-клавиатуры
-	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
-		inline_keyboard=[[big_button_1], 
-										 [big_button_2], 
-										 [big_button_3],
-											[big_button_4], 
-											[big_button_5]])
+	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+	keyboard1.row(big_button_1, big_button_2, big_button_3)
+	keyboard1.row(big_button_4, pink_btn, violet_btn)
+	keyboard1.row(orange_btn, white_btn, black_btn)
+
+	keyboard1.row(custom_btn)
 	
 	if listOfClients[id].info_id == 0:
 		msg = await message.answer("Теперь выбери цвет повязки",
@@ -405,8 +351,8 @@ async def start_set(message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
 
-	big_button_1: InlineKeyboardButton = InlineKeyboardButton(text='↑',
-																														callback_data='up')
+	big_button_1: InlineKeyboardButton = InlineKeyboardButton(text='↑',																			
+										callback_data='up')
 
 	big_button_2: InlineKeyboardButton = InlineKeyboardButton(
 		text=f'{listOfClients[id].pos}/8', callback_data='no')
@@ -416,7 +362,7 @@ async def start_set(message):
 		text='Первый слой', callback_data='first')
 
 	big_button_7: InlineKeyboardButton = InlineKeyboardButton(text='В ч/б',
-																														callback_data='bw')
+												callback_data='bw')
 
 	big_button_8: InlineKeyboardButton = InlineKeyboardButton(
 		text='Инвертировать', callback_data='negative')
@@ -656,9 +602,12 @@ async def from_f(message: CallbackQuery):
 
 	photo = open(f'1-{id1}.png', 'rb')
 	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
 	os.remove(f'1-{id1}.png')
-
+	await start_set(message.message)
 
 @dp.callback_query_handler(text="pepe")
 async def from_f(message: CallbackQuery):
@@ -717,7 +666,7 @@ async def echo(message: types.Message):
 			
 			msg_c = message.text.lstrip('#')
 			colour = tuple(int(msg_c[i:i + 2], 16) for i in (0, 2, 4))
-			listOfClients[id].bondg_color = colour
+			listOfClients[id].colour = colour
 
 			await message.delete()
 			listOfClients[id].wait_to_file = 0

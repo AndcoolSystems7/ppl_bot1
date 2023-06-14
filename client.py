@@ -79,13 +79,12 @@ class Client:
         self.chat_id = chat_id
         self.slim = None
         self.pos = 4
-        self.colour = 0
+        self.colour = (-1, -1, -1)
         self.wait_to_file = 0
         self.mc_class = None
         self.skin_raw = None #img
         self.prewiew_id = 0
         self.info_id = 0
-        self.colour_list = [(0, 0, 0), (176, 30, 30), (85, 163, 64), (61, 58, 201), (250, 213, 30), (0, 0, 0)]
         self.delete_mess = False
         self.first_skin1 = None #img
         self.average_col = None
@@ -94,7 +93,6 @@ class Client:
         self.bw = False
         self.negative = False
         self.pose = 0
-        self.bondg_color = (0, 0, 0)
         self.absolute_pos = 0
         self.settings_mess = 0
         self.change_e = 0
@@ -161,7 +159,7 @@ class Client:
     
     async def rerender(self):
         self.skin_raw = self.first_skin1.copy()
-        if self.colour != 0:
+        if self.colour != (-1, -1, -1):
             self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
 
             img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
@@ -173,8 +171,7 @@ class Client:
             else:
                 img_pod = Image.open("res/custom.png")
             
-            self.colour_list[5] = self.bondg_color
-            img_pod = fill(img_pod.copy(), self.colour_list[self.colour])
+            img_pod = fill(img_pod.copy(), self.colour)
 
             img.paste(img_pod, (0, 0), img_pod)
 
@@ -187,7 +184,7 @@ class Client:
             bond = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
             if self.first_layer == 1: 
                 img_lining = Image.open("res/lining/custom.png")
-                img_lining = fill(img_lining.copy(), self.colour_list[self.colour])
+                img_lining = fill(img_lining.copy(), self.colour)
                 self.skin_raw.paste(img_lining.crop((1, 0, 16, 4)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((1, 0, 16, 4)) if sl else img_lining)
                 bond.paste(img_lining, (0, 0), img_lining)
             bond.paste(img, (0, 0), img)

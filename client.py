@@ -55,23 +55,24 @@ def clear(img, pos):
             except: pass
     return rgb_im
 
-def crop(image, abs, slim):
+def crop(image, abs, slim, id):
     new_img = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
     img = Image.open(image).convert("RGBA")
+    pepe_new_id = 1
     if abs > 1: 
         if abs == 2 and slim:
-            img_less = img.crop((0, 0, 1, 5))
-            img_h = img.crop((1, 0, 6, 4))
-            new_img.paste(img_less, (13, 0), img_less)
+            img_less = img.crop((0, 0, 2 if id == pepe_new_id else 1, 5))
+            img_h = img.crop((2 if id == pepe_new_id else 1, 0, 6, 4))
+            new_img.paste(img_less, (12 if id == pepe_new_id else 13, 0), img_less)
             new_img.paste(img_h, (0, 0), img_h)
         else:
-            img_less = img.crop((0, 0, 1, 5))
+            img_less = img.crop((0, 0, 2 if id == pepe_new_id else 1, 5))
             
-            img_h = img.crop((1, 0, 6, 4))
-            new_img.paste(img_less, (15, 0), img_less)
+            img_h = img.crop((2 if id == pepe_new_id else 1, 0, 6, 4))
+            new_img.paste(img_less, (14 if id == pepe_new_id else 15, 0), img_less)
             new_img.paste(img_h, (0, 0), img_h)
     else:
-        new_img.paste(img, (7, 0), img)
+        new_img.paste(img, (7 - 1 if id == pepe_new_id else 7, 0), img)
     return new_img
 
 class Client:
@@ -162,19 +163,23 @@ class Client:
         if self.colour != (-1, -1, -1):
             self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
 
-            img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
+            
             if self.absolute_pos > 1: 
                 if self.absolute_pos == 2 and self.slim:
-                    img_pod = Image.open("res/custom_right_arm.png")
+                    img = Image.open("res/custom_right_arm.png")
                 else:
-                    img_pod = Image.open("res/custom_right.png")
+                    img = Image.open("res/custom_right.png")
             else:
-                img_pod = Image.open("res/custom.png")
+                img = Image.open("res/custom.png")
             
-            img_pod = fill(img_pod.copy(), self.colour)
+            img = fill(img.copy(), self.colour)
 
-            img.paste(img_pod, (0, 0), img_pod)
 
+            img1 = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim, self.pepe_type)
+            img.paste(img1, (0, 0), img1)
+
+
+            
             
             sl = self.slim and (self.absolute_pos == 0)
             if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)

@@ -231,9 +231,7 @@ class Client:
     
     
 def find_client(list, chat_id):
-    if list == []: 
-        list = [Client(chat_id)]
-        id = 0
+    if list == []: id = -1
     else:
         finded = False
         for add in range(len(list)):
@@ -242,6 +240,5 @@ def find_client(list, chat_id):
                 id = add
                 break
         if not finded: 
-            list.append(Client(chat_id))
-            id = len(list) - 1
+            id = -1
     return id

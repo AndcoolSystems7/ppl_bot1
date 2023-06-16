@@ -131,6 +131,9 @@ async def from_f(message: CallbackQuery):
 	await message.message.delete()
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].wait_to_file = 1
 
 
@@ -140,6 +143,9 @@ async def from_f(message: CallbackQuery):
 	await message.message.delete()
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].wait_to_file = 2
 
 
@@ -147,6 +153,9 @@ async def from_f(message: CallbackQuery):
 async def handle_docs_photo(message: types.Message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 
 	if listOfClients[id].wait_to_file == 1:
 		id1 = message.chat.id
@@ -198,6 +207,9 @@ async def from_f(message: CallbackQuery):
 	global listOfClients
 	global colour_txt
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 
 
 	colours = [(61, 58, 201), (250, 213, 30), (85, 163, 64), (176, 30, 30), (252, 15, 192), (105, 0, 198), (255, 102, 0), (0, 0, 0), (255, 255, 255)]
@@ -225,7 +237,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	await start_set(message.message)
 
 
@@ -235,6 +249,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	await listOfClients[id].info_id.delete()
 	listOfClients[id].colour = 5
 
@@ -251,6 +268,9 @@ async def from_f(message: CallbackQuery):
 async def acceptChoose(message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 			text='Готово ✓', callback_data='done_d')
 
@@ -266,7 +286,9 @@ async def acceptChoose(message):
 async def from_f(message: CallbackQuery):
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-	
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	msg = await colorDialog(message.message, id)
 	
 	
@@ -275,6 +297,9 @@ async def from_f(message: CallbackQuery):
 async def from_f(message: CallbackQuery):
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	await start_set(message.message)
 #---------------------------------------------------------------------------------------------------
 async def colorDialog(message, id):
@@ -330,6 +355,9 @@ async def from_f(message: CallbackQuery):
 	global listOfClients
 	id1 = message.message.chat.id
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].skin_raw.save("2" + f'{id1}.png')
 	await message.message.answer_document(open("2" + f'{id1}.png', "rb"))
 	os.remove("2" + f'{id1}.png')
@@ -342,6 +370,9 @@ async def from_f(message: CallbackQuery):
 	global listOfClients
 	id1 = message.message.chat.id
 	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].bandage.save("3" + f'{id1}.png')
 	await message.message.answer_document(open("3" + f'{id1}.png', "rb"))
 	os.remove("3" + f'{id1}.png')
@@ -350,6 +381,9 @@ async def from_f(message: CallbackQuery):
 async def start_set(message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 
 	big_button_1: InlineKeyboardButton = InlineKeyboardButton(text='↑',																			
 										callback_data='up')
@@ -429,7 +463,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	if listOfClients[id].pos > 0:
 		listOfClients[id].pos -= 1
 
@@ -453,7 +489,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].pose += 1
 
 	if listOfClients[id].pose > len(listOfClients[id].poses[0]) - 1: listOfClients[id].pose = 0
@@ -479,7 +517,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].bw = not listOfClients[id].bw
 
 	skin_rer = await listOfClients[id].rerender()
@@ -502,7 +542,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].negative = not listOfClients[id].negative
 
 	skin_rer = await listOfClients[id].rerender()
@@ -524,7 +566,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	if listOfClients[id].pos < 7:
 		listOfClients[id].pos += 1
 
@@ -547,7 +591,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].first_layer += 1
 
 	if listOfClients[id].first_layer > 2: listOfClients[id].first_layer = 0
@@ -571,7 +617,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].overlay = not listOfClients[id].overlay
 
 	skin_rer = await listOfClients[id].rerender()
@@ -592,7 +640,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].absolute_pos += 1
 
 	if listOfClients[id].absolute_pos > 3: listOfClients[id].absolute_pos = 0
@@ -614,7 +664,9 @@ async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
-
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	listOfClients[id].pepe_type += 1
 
 	if listOfClients[id].pepe_type > len(listOfClients[id].pepes) - 1: listOfClients[id].pepe_type = 0
@@ -636,6 +688,9 @@ async def from_f(message: CallbackQuery):
 async def echo(message: types.Message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
 	id1 = message.chat.id
 	#if listOfClients[id].delete_mess: await message.delete()
 	if listOfClients[id].wait_to_file == 2:

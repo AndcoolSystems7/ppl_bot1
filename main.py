@@ -390,45 +390,57 @@ async def start_set(message):
 		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
 
-	big_button_1: InlineKeyboardButton = InlineKeyboardButton(text='↑',																			
+	up_btn: InlineKeyboardButton = InlineKeyboardButton(text='↑',																			
 										callback_data='up')
 
-	big_button_2: InlineKeyboardButton = InlineKeyboardButton(
+	info_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text=f'{listOfClients[id].pos}/8', callback_data='no')
-	big_button_3: InlineKeyboardButton = InlineKeyboardButton(
+	
+	down_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='↓', callback_data='down')
-	big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+	
+	first_layer_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Первый слой', callback_data='first')
 
-	big_button_7: InlineKeyboardButton = InlineKeyboardButton(text='В ч/б',
+	bw_btn: InlineKeyboardButton = InlineKeyboardButton(text='В ч/б',
 												callback_data='bw')
 
-	big_button_8: InlineKeyboardButton = InlineKeyboardButton(
+	negative_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Инвертировать', callback_data='negative')
 
-	big_button_9: InlineKeyboardButton = InlineKeyboardButton(
+	pose_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Поза', callback_data='pose')
 
-	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+	overlay_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Оверлей', callback_data='over')
 	
-	big_button_10: InlineKeyboardButton = InlineKeyboardButton(
+	bodyPart_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Часть тела', callback_data='body_part')
 	
-	big_button_11: InlineKeyboardButton = InlineKeyboardButton(
+	pepetype_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Тип пепе', callback_data='pepe')
 	
-	big_button_12: InlineKeyboardButton = InlineKeyboardButton(
+	bndg_downl: InlineKeyboardButton = InlineKeyboardButton(
 		text='Скачать повязку', callback_data='bandage_dwnd')
 
-	big_button_6: InlineKeyboardButton = InlineKeyboardButton(
+	donw_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Готово ✓', callback_data='done')
+	
+	reset_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Сбросить', callback_data='reset')
+	
+	pass_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='-', callback_data='passs')
+	
+	
 
 	# Создаем объект инлайн-клавиатуры
 	keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
-	keyboard3.row(big_button_1, big_button_4, big_button_10, big_button_7)
-	keyboard3.row(big_button_2, big_button_5, big_button_11, big_button_8)
-	keyboard3.row(big_button_3, big_button_9, big_button_12, big_button_6)
+	keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, pass_btn)
+	keyboard3.row(info_btn, overlay_btn,     pepetype_btn, reset_btn)
+	keyboard3.row(down_btn, pose_btn,        negative_btn, bndg_downl)
+	keyboard3.row(pass_btn, pass_btn,        bw_btn,       donw_btn)
+	
 
 	
 	listOfClients[id].change_e = not listOfClients[id].change_e
@@ -461,6 +473,39 @@ async def start_set(message):
 			reply_markup=keyboard3)
 
 	except:pass
+
+
+@dp.callback_query_handler(text="reset")
+async def from_f(message: CallbackQuery):
+
+	id1 = message.message.chat.id
+	global listOfClients
+	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	listOfClients[id].pos = 4
+	listOfClients[id].overlay = True
+	listOfClients[id].bw = False
+	listOfClients[id].negative = False
+	listOfClients[id].pose = 0
+	listOfClients[id].absolute_pos = 0
+	listOfClients[id].pepe_type = 0
+	listOfClients[id].first_layer = 1
+
+	skin_rer = await listOfClients[id].rerender()
+	skin_rer.save(f'1-{id1}.png')
+
+	photo = open(f'1-{id1}.png', 'rb')
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
+	os.remove(f'1-{id1}.png')
+	await start_set(message.message)
+
 
 @dp.callback_query_handler(text="up")
 async def from_f(message: CallbackQuery):

@@ -125,27 +125,29 @@ async def send_welcome(message: types.Message):
 
 @dp.callback_query_handler(text="file")
 async def from_f(message: CallbackQuery):
-	await message.message.answer(
-		'Хорошо, теперь отправь мне свой скин.\nОбязательно при отправке убери галочку "Сжать изображение"'
-	)
-	await message.message.delete()
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
+	await message.message.answer(
+		'Хорошо, теперь отправь мне свой скин.\nОбязательно при отправке убери галочку "Сжать изображение"'
+	)
+	await message.message.delete()
+	
 	listOfClients[id].wait_to_file = 1
 
 
 @dp.callback_query_handler(text="nick")
 async def from_f(message: CallbackQuery):
-	await message.message.answer("Хорошо, теперь отправь мне свой никнейм.")
-	await message.message.delete()
 	global listOfClients
 	id = client.find_client(listOfClients, message.message.chat.id)
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
+	await message.message.answer("Хорошо, теперь отправь мне свой никнейм.")
+	await message.message.delete()
+	
 	listOfClients[id].wait_to_file = 2
 
 

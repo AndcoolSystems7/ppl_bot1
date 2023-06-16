@@ -18,16 +18,12 @@ logging.info(f"Running on {server_text} server")
 if on_server: from background import keep_alive
 
 import client
-import os, io
-from PIL import Image, ImageDraw, ImageFont
+import os
+from PIL import Image
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.dispatcher.filters import Text
-from aiogram.types import InputMedia, InputFile, CallbackQuery
-from aiogram.types import ReplyKeyboardRemove, \
-		ReplyKeyboardMarkup, KeyboardButton, \
-		InlineKeyboardMarkup, InlineKeyboardButton
-from colorthief import ColorThief
-from datetime import datetime, date, time, timedelta  #Модуль времени
+from aiogram.types import CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from datetime import datetime  #Модуль времени
 import pytz
 import time as time1
 
@@ -150,6 +146,13 @@ async def from_f(message: CallbackQuery):
 	
 	listOfClients[id].wait_to_file = 2
 
+
+@dp.message_handler(content_types=['photo'])
+async def handle_docs_photo(message: types.Message):
+	global listOfClients
+	id = client.find_client(listOfClients, message.chat.id)
+	if listOfClients[id].wait_to_file == 1:
+		await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
 
 @dp.message_handler(content_types=['document'])
 async def handle_docs_photo(message: types.Message):

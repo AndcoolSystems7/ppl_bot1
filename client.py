@@ -1,5 +1,5 @@
 from minepi import Player
-from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
+from PIL import Image, ImageEnhance
 from os import listdir
 from os.path import isfile, join
 

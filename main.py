@@ -55,12 +55,12 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(commands=['changelog'])
 async def send_welcome(message: types.Message):
 	
-	f = open("changelog.txt", encoding="UTF8")
-	ver = f.read()
-	
+	f = open("README.md", encoding="UTF8")
+	ver = "Обновление" + f.read().split("Обновление")[1]
 	f.close()
-	text = link('VK', 'https://vk.com')
-	await message.answer(text=ver + "\n" + text, parse_mode= 'Markdown')
+
+	text = link('тут', 'https://github.com/AndcoolSystems7/PepelandBotChangelog/blob/main/README.md')
+	await message.answer(text=f"{ver}Полный список обновлений можно посмотреть {text}", parse_mode= 'Markdown')
 
 
 @dp.message_handler(commands=['start'])

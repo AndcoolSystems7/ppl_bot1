@@ -36,7 +36,7 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 listOfClients = []
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['help'])
 async def send_welcome(message: types.Message):
 	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
@@ -51,7 +51,7 @@ async def send_welcome(message: types.Message):
 	text4 = "*Created by AndcoolSystems*"
 	await message.answer(text=text1+text2+text3+text5+text4, parse_mode= 'Markdown')
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['changelog'])
 async def send_welcome(message: types.Message):
 	
@@ -63,15 +63,31 @@ async def send_welcome(message: types.Message):
 	await message.answer(text=f"{ver}Полный список обновлений можно посмотреть {text}", parse_mode= 'Markdown')
 
 
+#---------------------------------------------------------------------------------------------------
+async def render_and_edit(message, id, id1):
+	global listOfClients
+	skin_rer = await listOfClients[id].rerender()
+	skin_rer.save(f'1-{id1}.png')
+
+	photo = open(f'1-{id1}.png', 'rb')
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
+	os.remove(f'1-{id1}.png')
+
+#---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 	now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
 
 	now_time_format = "{}.{}.{}-{}:{}".format(now_time_log.day,
-																						now_time_log.month,
-																						now_time_log.year,
-																						now_time_log.hour,
-																						now_time_log.minute)
+											now_time_log.month,
+											now_time_log.year,
+											now_time_log.hour,
+											now_time_log.minute)
 
 	big_button_1: InlineKeyboardButton = InlineKeyboardButton(
 		text='Из файла', callback_data='file')
@@ -81,7 +97,7 @@ async def send_welcome(message: types.Message):
 
 	# Создаем объект инлайн-клавиатуры
 	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
-		inline_keyboard=[[big_button_1], [big_button_2]])
+		inline_keyboard=[[big_button_2], [big_button_1]])
 	await message.answer("Привет! Давай начнём.\nОткуда брать скин?",
 											 reply_markup=keyboard)
 	global listOfClients
@@ -122,14 +138,19 @@ async def send_welcome(message: types.Message):
 	userListFile.close()
 	userListFile1.close()
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['donate'])
 async def send_welcome(message: types.Message):
-	await message.answer(
-		"Вы можете поддержать разработчиков бота, отправив донат по ссылке\nhttps://www.donationalerts.com/r/andcool_systems"
-	)
 
+	big_button_1: InlineKeyboardButton = InlineKeyboardButton(
+		text='DonationAlerts', url="https://www.donationalerts.com/r/andcool_systems")
 
+	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
+		inline_keyboard=[[big_button_1]])
+	await message.answer("Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts",
+											 reply_markup=keyboard)
+
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="file")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -144,7 +165,7 @@ async def from_f(message: CallbackQuery):
 	
 	listOfClients[id].wait_to_file = 1
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="nick")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -157,7 +178,7 @@ async def from_f(message: CallbackQuery):
 	
 	listOfClients[id].wait_to_file = 2
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.message_handler(content_types=['photo'])
 async def handle_docs_photo(message: types.Message):
 	global listOfClients
@@ -165,6 +186,7 @@ async def handle_docs_photo(message: types.Message):
 	if listOfClients[id].wait_to_file == 1:
 		await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
 
+#---------------------------------------------------------------------------------------------------
 @dp.message_handler(content_types=['document'])
 async def handle_docs_photo(message: types.Message):
 	global listOfClients
@@ -203,7 +225,7 @@ async def handle_docs_photo(message: types.Message):
 				photo = open(f'1-{id1}.png', 'rb')
 
 				msg = await message.answer_photo(photo,
-																				 "Вот предварительный просмотр")
+												"Вот предварительный просмотр")
 				listOfClients[id].prewiew_id = msg
 				photo.close()
 
@@ -242,22 +264,11 @@ async def from_f(message: CallbackQuery):
 	colours = [(61, 58, 201), (250, 213, 30), (85, 163, 64), (176, 30, 30), (252, 15, 192), (105, 0, 198), (255, 102, 0), (0, 0, 0), (255, 255, 255)]
 	listOfClients[id].colour = colours[colour_txt.index(message.data)]
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await acceptChoose(message.message)
 
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="done_c")
 async def from_f(message: CallbackQuery):
 
@@ -269,7 +280,7 @@ async def from_f(message: CallbackQuery):
 		return
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="custom")
 async def from_f(message: CallbackQuery):
 
@@ -309,7 +320,7 @@ async def acceptChoose(message):
 	await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
 
 
-
+#---------------------------------------------------------------------------------------------------
 async def reset_accept(message):
 	global listOfClients
 	id = client.find_client(listOfClients, message.chat.id)
@@ -326,7 +337,7 @@ async def reset_accept(message):
 		inline_keyboard=[[big_button_4], [big_button_5]])
 	await listOfClients[id].info_id.edit_text("Сбросить?\nТочно?", reply_markup=keyboard1)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="resetDeny")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -337,7 +348,7 @@ async def from_f(message: CallbackQuery):
 	await start_set(message.message)
 
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="resetAccept")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -356,23 +367,11 @@ async def from_f(message: CallbackQuery):
 	listOfClients[id].pepe_type = 0
 	listOfClients[id].first_layer = 1
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
 
-
-
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="colD")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -383,7 +382,7 @@ async def from_f(message: CallbackQuery):
 	msg = await colorDialog(message.message, id)
 	
 	
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="done_d")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -455,7 +454,7 @@ async def from_f(message: CallbackQuery):
 	await listOfClients[id].info_id.delete()
 	listOfClients.pop(id)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="bandage_dwnd")
 async def from_f(message: CallbackQuery):
 	global listOfClients
@@ -565,7 +564,7 @@ async def start_set(message):
 
 	except:pass
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="reset")
 async def from_f(message: CallbackQuery):
 
@@ -578,7 +577,7 @@ async def from_f(message: CallbackQuery):
 
 	await reset_accept(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="up")
 async def from_f(message: CallbackQuery):
 
@@ -591,20 +590,10 @@ async def from_f(message: CallbackQuery):
 	if listOfClients[id].pos > 0:
 		listOfClients[id].pos -= 1
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="delete_sw")
 async def from_f(message: CallbackQuery):
 
@@ -617,23 +606,12 @@ async def from_f(message: CallbackQuery):
 	listOfClients[id].delete_pix = not listOfClients[id].delete_pix
 
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-								 									
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
 
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="pose")
 async def from_f(message: CallbackQuery):
 
@@ -647,21 +625,10 @@ async def from_f(message: CallbackQuery):
 
 	if listOfClients[id].pose > len(listOfClients[id].poses[0]) - 1: listOfClients[id].pose = 0
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-								 									
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="bw")
 async def from_f(message: CallbackQuery):
 
@@ -673,20 +640,11 @@ async def from_f(message: CallbackQuery):
 		return
 	listOfClients[id].bw = not listOfClients[id].bw
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="negative")
 async def from_f(message: CallbackQuery):
 
@@ -698,20 +656,12 @@ async def from_f(message: CallbackQuery):
 		return
 	listOfClients[id].negative = not listOfClients[id].negative
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
 
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="down")
 async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
@@ -723,20 +673,10 @@ async def from_f(message: CallbackQuery):
 	if listOfClients[id].pos < 7:
 		listOfClients[id].pos += 1
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="first")
 async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
@@ -749,20 +689,10 @@ async def from_f(message: CallbackQuery):
 
 	if listOfClients[id].first_layer > 2: listOfClients[id].first_layer = 0
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="over")
 async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
@@ -773,19 +703,11 @@ async def from_f(message: CallbackQuery):
 		return
 	listOfClients[id].overlay = not listOfClients[id].overlay
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 
+
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="body_part")
 async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
@@ -798,18 +720,9 @@ async def from_f(message: CallbackQuery):
 
 	if listOfClients[id].absolute_pos > 3: listOfClients[id].absolute_pos = 0
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
-
+#---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="pepe")
 async def from_f(message: CallbackQuery):
 	id1 = message.message.chat.id
@@ -822,17 +735,7 @@ async def from_f(message: CallbackQuery):
 
 	if listOfClients[id].pepe_type > len(listOfClients[id].pepes) - 1: listOfClients[id].pepe_type = 0
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
+	await render_and_edit(message.message, id, id1)
 	await start_set(message.message)
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(content_types=['text'])

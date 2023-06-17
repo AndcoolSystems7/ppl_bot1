@@ -26,6 +26,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime  #Модуль времени
 import pytz
 import time as time1
+from aiogram.utils.markdown import link
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -49,6 +50,19 @@ async def send_welcome(message: types.Message):
 	else: text5 = ""
 	text4 = "*Created by AndcoolSystems*"
 	await message.answer(text=text1+text2+text3+text5+text4, parse_mode= 'Markdown')
+
+
+@dp.message_handler(commands=['changelog'])
+async def send_welcome(message: types.Message):
+	
+	f = open("changelog.txt", encoding="UTF8")
+	ver = f.read()
+	
+	f.close()
+	text = link('VK', 'https://vk.com')
+	await message.answer(text=ver + "\n" + text, parse_mode= 'Markdown')
+
+
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 	now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
@@ -273,7 +287,7 @@ async def from_f(message: CallbackQuery):
 	#await message.message.delete()
 
 	msg = await message.message.answer(
-		"Теперь отправьте свой цвет в формате HEX\nЦвет можно получить на сайте https://colorscheme.ru/color-converter.html"
+		"Теперь отправьте свой цвет в формате *HEX* или *RGB*\nЦвет можно получить на сайте https://colorscheme.ru/color-converter.html", parse_mode= 'Markdown'
 	)
 	listOfClients[id].info_id = msg
 
@@ -857,12 +871,28 @@ async def echo(message: types.Message):
 			await message.answer("Аккаунт с таким именем не найден(")
 	if listOfClients[id].wait_to_file == 3:
 		try:
-			
+			try: await listOfClients[id].error_msg.delete()
+			except: pass
+			await message.delete()
 			msg_c = message.text.lstrip('#')
-			colour = tuple(int(msg_c[i:i + 2], 16) for i in (0, 2, 4))
+
+			input1 = msg_c.split(", ")
+			input2 = msg_c.split(",")
+
+			if len(input1) == 1 and len(input2) == 1:
+				colour = tuple(int(msg_c[i:i + 2], 16) for i in (0, 2, 4))
+			else:
+				if len(input1) == 1:
+					colour = (int(input2[0]), int(input2[1]), int(input2[2]))
+				else:
+					colour = (int(input1[0]), int(input1[1]), int(input1[2]))
+
+			r, g, b = colour
+			if r > 255 or g > 255 or b > 255 or r < 0 or g < 0 and b < 0: 
+				raise ZeroDivisionError
 			listOfClients[id].colour = colour
 
-			await message.delete()
+			
 			listOfClients[id].wait_to_file = 0
 			skin_rer = await listOfClients[id].rerender()
 
@@ -890,7 +920,9 @@ async def echo(message: types.Message):
 			listOfClients[id].info_id = msg
 
 		except Exception as e:
-			await message.answer("Не удалось получить цвет(\nПопробуйте ещё раз")
+			print(e)
+			msg = await message.answer("Не удалось получить цвет(\nПопробуйте ещё раз")
+			listOfClients[id].error_msg = msg
 
 
 if on_server: keep_alive()

@@ -113,6 +113,7 @@ class Client:
         self.change_e = 0
         self.delete_pix = True
         self.bandage = None
+        self.error_msg = None
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
         self.y_f = [52, 52, 20, 20]

@@ -197,7 +197,7 @@ class Client:
             self.bandage = bond
 
             img.close()
-        if self.bw: 
+        if self.bw:
             self.skin_raw = self.skin_raw.convert('LA').copy()
             enhancer = ImageEnhance.Contrast(self.skin_raw)
             factor = 1.5 

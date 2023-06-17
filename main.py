@@ -285,7 +285,72 @@ async def acceptChoose(message):
 	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_4], [big_button_5]])
 	await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
+
+
+
+async def reset_accept(message):
+	global listOfClients
+	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='Да ✓', callback_data='resetAccept')
+
+	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+		text='Нет ✗', callback_data='resetDeny')
+
+	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+		inline_keyboard=[[big_button_4], [big_button_5]])
+	await listOfClients[id].info_id.edit_text("Сбросить?\nТочно?", reply_markup=keyboard1)
 	
+
+
+@dp.callback_query_handler(text="resetDeny")
+async def from_f(message: CallbackQuery):
+	global listOfClients
+	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	await start_set(message.message)
+
+
+
+@dp.callback_query_handler(text="resetAccept")
+async def from_f(message: CallbackQuery):
+	global listOfClients
+	id = client.find_client(listOfClients, message.message.chat.id)
+	id1 = message.message.chat.id
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+
+	listOfClients[id].pos = 4
+	listOfClients[id].overlay = True
+	listOfClients[id].bw = False
+	listOfClients[id].negative = False
+	listOfClients[id].pose = 0
+	listOfClients[id].absolute_pos = 0
+	listOfClients[id].pepe_type = 0
+	listOfClients[id].first_layer = 1
+
+	skin_rer = await listOfClients[id].rerender()
+	skin_rer.save(f'1-{id1}.png')
+
+	photo = open(f'1-{id1}.png', 'rb')
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+	except:pass
+	os.remove(f'1-{id1}.png')
+	await start_set(message.message)
+
+
+
+
 
 @dp.callback_query_handler(text="colD")
 async def from_f(message: CallbackQuery):
@@ -484,27 +549,10 @@ async def from_f(message: CallbackQuery):
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
-	listOfClients[id].pos = 4
-	listOfClients[id].overlay = True
-	listOfClients[id].bw = False
-	listOfClients[id].negative = False
-	listOfClients[id].pose = 0
-	listOfClients[id].absolute_pos = 0
-	listOfClients[id].pepe_type = 0
-	listOfClients[id].first_layer = 1
+	
 
-	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
-
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-							     chat_id=listOfClients[id].prewiew_id.chat.id,
-								 message_id=listOfClients[id].prewiew_id.message_id)
-	except:pass
-	os.remove(f'1-{id1}.png')
-	await start_set(message.message)
+	
+	await reset_accept(message.message)
 
 
 @dp.callback_query_handler(text="up")

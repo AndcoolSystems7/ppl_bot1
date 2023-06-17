@@ -311,7 +311,6 @@ async def reset_accept(message):
 	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_4], [big_button_5]])
 	await listOfClients[id].info_id.edit_text("Сбросить?\nТочно?", reply_markup=keyboard1)
-	
 
 
 @dp.callback_query_handler(text="resetDeny")

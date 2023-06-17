@@ -30,10 +30,7 @@ import time as time1
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 
-# Configure logging
 
-
-# Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 listOfClients = []
@@ -41,9 +38,9 @@ listOfClients = []
 
 @dp.message_handler(commands=['help'])
 async def send_welcome(message: types.Message):
-	text1 = "PPL повязка - это бот, созданный для наложения повязки ПепеЛенда на ваш скин.\n"
+	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
 	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
-	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд AndcoolSystems#4320\n\n"
+	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд andcoolsystems\n\n"
 	if on_server:
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
@@ -170,6 +167,17 @@ async def handle_docs_photo(message: types.Message):
 		try:
 			usr_img = Image.open(f'{id1}.png').convert("RGBA")
 			w, h = usr_img.size
+			done = True
+			for y_ch in range(3):
+				for x_ch in range(3):
+					r, g, b, t = usr_img.getpixel((x_ch, y_ch))
+					if t != 0:
+						done = False
+						break
+
+			if not done:
+				await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+	
 			if w == 64 and h == 64:
 				await listOfClients[id].init_mc_f(usr_img)
 				listOfClients[id].wait_to_file = 0
@@ -494,6 +502,9 @@ async def start_set(message):
 	reset_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='Сбросить', callback_data='reset')
 	
+	delete_btn: InlineKeyboardButton = InlineKeyboardButton(
+		text='Удаление пикселей над повязкой', callback_data='delete_sw')
+	
 	pass_btn: InlineKeyboardButton = InlineKeyboardButton(
 		text='-', callback_data='passs')
 	
@@ -504,7 +515,7 @@ async def start_set(message):
 	keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, pass_btn)
 	keyboard3.row(info_btn, overlay_btn,     pepetype_btn, reset_btn)
 	keyboard3.row(down_btn, pose_btn,        negative_btn, bndg_downl)
-	keyboard3.row(pass_btn, pass_btn,        bw_btn,       donw_btn)
+	keyboard3.row(pass_btn, delete_btn,        bw_btn,       donw_btn)
 	
 
 	
@@ -525,16 +536,18 @@ async def start_set(message):
 
 	txt14 = "Вкл" if listOfClients[id].bw else "Выкл"
 	txt15 = "Вкл" if listOfClients[id].negative else "Выкл"
+	txt16 = "Вкл" if listOfClients[id].delete_pix else "Выкл"
 	e = "e" if listOfClients[id].change_e else "е"
 	txt3 = f"Оверлей: {txt12}\n"
 	txt4 = f"Первый слой: {txt13}\n"
 	txt5 = f"Чёрно-б{e}лый: {txt14}\n"
 	txt6 = f"Негатив: {txt15}\n"
+	txt8 = f"Удаление пикселей над повязкой: {txt16}\n"
 	
 	try:
 			
 		msg = await listOfClients[id].info_id.edit_text(
-			f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}",
+			f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}{txt8}",
 			reply_markup=keyboard3)
 
 	except:pass
@@ -549,9 +562,7 @@ async def from_f(message: CallbackQuery):
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
-	
 
-	
 	await reset_accept(message.message)
 
 
@@ -579,6 +590,35 @@ async def from_f(message: CallbackQuery):
 	except:pass
 	os.remove(f'1-{id1}.png')
 	await start_set(message.message)
+
+
+@dp.callback_query_handler(text="delete_sw")
+async def from_f(message: CallbackQuery):
+
+	id1 = message.message.chat.id
+	global listOfClients
+	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	listOfClients[id].delete_pix = not listOfClients[id].delete_pix
+
+
+	skin_rer = await listOfClients[id].rerender()
+	skin_rer.save(f'1-{id1}.png')
+
+	photo = open(f'1-{id1}.png', 'rb')
+	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+
+	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
+							     chat_id=listOfClients[id].prewiew_id.chat.id,
+								 message_id=listOfClients[id].prewiew_id.message_id)
+								 									
+	except:pass
+	os.remove(f'1-{id1}.png')
+	await start_set(message.message)
+
+
 
 
 @dp.callback_query_handler(text="pose")
@@ -793,7 +833,8 @@ async def echo(message: types.Message):
 	#if listOfClients[id].delete_mess: await message.delete()
 	if listOfClients[id].wait_to_file == 2:
 		done = await listOfClients[id].init_mc_n(message.text)
-		if done == 1:
+		if done == 1 or done == 3:
+			if done == 3: await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
 			listOfClients[id].wait_to_file = 0
 
 			await listOfClients[id].prerender()
@@ -811,6 +852,7 @@ async def echo(message: types.Message):
 			listOfClients[id].info_id = msg
 
 		elif done == 2: await message.answer("Извините, скины до версии 1.8 не поддерживаются(")
+		
 
 		else:
 			await message.answer("Аккаунт с таким именем не найден(")

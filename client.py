@@ -13,6 +13,19 @@ def transparent_negative(img):
                 if t != 0: rgb_im.putpixel((x, y), (255 - r, 255 - g, 255 - b, t))
             except: pass
     return rgb_im
+
+
+def bw_mode(img):
+    rgb_im = img.convert('RGBA')
+    for y in range(64):
+        for x in range(64):
+            r, g, b, t = rgb_im.getpixel((x, y))
+            try: 
+                if t != 0: 
+                    a = round((r + b + g) / 3)
+                    rgb_im.putpixel((x, y), (a, a, a, t))
+            except: pass
+    return rgb_im
 def average_colour(im):
     rgb_im = im.convert('RGBA')
     w, h = rgb_im.size
@@ -98,6 +111,7 @@ class Client:
         self.absolute_pos = 0
         self.settings_mess = 0
         self.change_e = 0
+        self.delete_pix = True
         self.bandage = None
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
@@ -141,6 +155,14 @@ class Client:
             self.first_skin1 = self.mc_class._raw_skin.copy()
             w, h = self.skin_raw.size
             if w == 64 and h == 32: done = 2
+
+            done = True
+            for y_ch in range(3):
+                for x_ch in range(3):
+                    r, g, b, t = self.skin_raw.getpixel((x_ch, y_ch))
+                    if t != 0:
+                        done = 3
+                        break
         return done
         
 
@@ -162,7 +184,7 @@ class Client:
     async def rerender(self):
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
-            self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
+            if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
 
             
             if self.absolute_pos > 1: 
@@ -198,10 +220,10 @@ class Client:
 
             img.close()
         if self.bw:
-            self.skin_raw = self.skin_raw.convert('LA').copy()
-            enhancer = ImageEnhance.Contrast(self.skin_raw)
-            factor = 1.5 
-            self.skin_raw = enhancer.enhance(factor)
+            self.skin_raw = bw_mode(self.skin_raw).copy()
+            #enhancer = ImageEnhance.Contrast(self.skin_raw)
+            #factor = 1.5 
+            #self.skin_raw = enhancer.enhance(factor)
 
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)

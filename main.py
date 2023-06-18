@@ -28,6 +28,7 @@ import pytz
 import time as time1
 from aiogram.utils.markdown import link
 from io import BytesIO
+import numpy as np
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -36,6 +37,51 @@ else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 listOfClients = []
+andcool_alert = False
+if not os.path.exists("Alert_not.npy"):
+	not_alert = np.array([0])
+	np.save("Alert_not.npy", not_alert)
+else:
+	not_alert = np.load("Alert_not.npy")
+
+print(not_alert)
+#---------------------------------------------------------------------------------------------------
+@dp.message_handler(commands=['sendAlert'])
+async def send_welcome(message: types.Message):
+	global andcool_alert
+	if message.from_user.id == 1197005557:
+		await message.answer(text="Хорошо, AndcoolSystems, теперь отправь мне сообщение, которое я должен переслать другим")
+		andcool_alert = True
+
+
+#---------------------------------------------------------------------------------------------------
+@dp.message_handler(commands=['startalerts'])
+async def send_welcome(message: types.Message):
+	global not_alert
+
+	if not_alert.size > 0:
+		if not message.from_user.id in not_alert: 
+			not_alert = np.append(not_alert, message.from_user.id)
+			await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
+			np.save("Alert_not.npy", not_alert)
+			print(not_alert)
+		else: await message.answer(text="Оповещения уже включены")
+
+
+
+#---------------------------------------------------------------------------------------------------
+@dp.message_handler(commands=['stopalerts'])
+async def send_welcome(message: types.Message):
+	global not_alert
+	counter = 0
+	if not_alert.size > 0:
+		for x in not_alert:
+			
+			if x == message.from_user.id:
+				not_alert = np.delete(not_alert, counter)
+				await message.answer(text="Окей, теперь оповещения не будут приходить вам)\nВы всегда можете включить их обратно отправив /startalerts")
+			counter+=1
+		np.save("Alert_not.npy", not_alert)
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['help'])
@@ -84,6 +130,9 @@ async def render_and_edit(message, id, id1):
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
+	global andcool_alert
+	if message.from_user.id == 1197005557:
+		andcool_alert = False
 	now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
 
 	now_time_format = "{}.{}.{}-{}:{}".format(now_time_log.day,
@@ -141,6 +190,9 @@ async def send_welcome(message: types.Message):
 	userListFile.close()
 	userListFile1.close()
 
+	
+
+
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['donate'])
 async def send_welcome(message: types.Message):
@@ -185,9 +237,34 @@ async def from_f(message: CallbackQuery):
 @dp.message_handler(content_types=['photo'])
 async def handle_docs_photo(message: types.Message):
 	global listOfClients
-	id = client.find_client(listOfClients, message.chat.id)
-	if listOfClients[id].wait_to_file == 1:
-		await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
+	global andcool_alert
+	
+	if andcool_alert == True and message.from_user.id == 1197005557:
+		if document := message.photo:
+			await message.photo[-1].download(destination_file=f'alert.png')
+
+		photo = open(f'alert.png', 'rb')
+
+		global not_alert
+
+		for x in not_alert:
+			if x != "\n" and x != "":
+				
+				try:
+					photo = open(f'alert.png', 'rb')
+					await bot.send_photo(chat_id=int(x), caption=f"{message.caption}\n\nВы всегда можете отключить оповещения отправив команду /stopalerts", photo=photo)
+				except: pass
+
+		photo.close()
+		os.remove('alert.png')
+		andcool_alert = False
+	else:
+		id = client.find_client(listOfClients, message.chat.id)
+		if id == -1: 
+			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		if listOfClients[id].wait_to_file == 1:
+			await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(content_types=['document'])
@@ -202,7 +279,7 @@ async def handle_docs_photo(message: types.Message):
 		id1 = message.chat.id
 
 		if document := message.document:
-			await document.download(destination_file=f'{id1}.png', )
+			await document.download(destination_file=f'{id1}.png')
 		try:
 			usr_img = Image.open(f'{id1}.png').convert("RGBA")
 			w, h = usr_img.size
@@ -790,82 +867,99 @@ async def from_f(message: CallbackQuery):
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(content_types=['text'])
 async def echo(message: types.Message):
-	global listOfClients
-	id = client.find_client(listOfClients, message.chat.id)
-	if id == -1: 
-		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
-		return
-	id1 = message.chat.id
-	#if listOfClients[id].delete_mess: await message.delete()
-	if listOfClients[id].wait_to_file == 2:
-		done = await listOfClients[id].init_mc_n(message.text)
-		if done == 1 or done == 3:
-			if done == 3: await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
-			listOfClients[id].wait_to_file = 0
-
-			await listOfClients[id].prerender()
-
-			skin_rer = await listOfClients[id].rerender()
-			bio = BytesIO()
-			bio.name = f'{id1}.png'
-			skin_rer.save(bio, 'PNG')
-			bio.seek(0)
-
-			msg = await message.answer_photo(bio, "Вот предварительный просмотр")
-			listOfClients[id].prewiew_id = msg
-
-
-			msg = await colorDialog(message, id)
-			listOfClients[id].info_id = msg
-
-		elif done == 2: await message.answer("Извините, скины до версии 1.8 не поддерживаются(")
+	global andcool_alert
+	
+	if andcool_alert == True and message.from_user.id == 1197005557:
 		
 
-		else:
-			await message.answer("Аккаунт с таким именем не найден(")
-	if listOfClients[id].wait_to_file == 3:
-		try:
-			try: await listOfClients[id].error_msg.delete()
-			except: pass
-			await message.delete()
-			msg_c = message.text.lstrip('#')
+		global not_alert
 
-			input1 = msg_c.split(", ")
-			input2 = msg_c.split(",")
+		for x in not_alert:
+			if x != "\n" and x != "":
+				
+				try:
+					await bot.send_message(int(x), f"{message.text}\n\nВы всегда можете отключить оповещения отправив команду /stopalerts")
+				except: pass
+		andcool_alert = False
+	elif message.from_user.is_bot == False:
+		global listOfClients
+		id = client.find_client(listOfClients, message.chat.id)
+		if id == -1: 
+			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		id1 = message.chat.id
+		#if listOfClients[id].delete_mess: await message.delete()
+	
 
-			if len(input1) == 1 and len(input2) == 1:
-				colour = tuple(int(msg_c[i:i + 2], 16) for i in (0, 2, 4))
-			else:
-				if len(input1) == 1:
-					colour = (int(input2[0]), int(input2[1]), int(input2[2]))
-				else:
-					colour = (int(input1[0]), int(input1[1]), int(input1[2]))
+		if listOfClients[id].wait_to_file == 2:
+			done = await listOfClients[id].init_mc_n(message.text)
+			if done == 1 or done == 3:
+				if done == 3: await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+				listOfClients[id].wait_to_file = 0
 
-			r, g, b = colour
-			if r > 255 or g > 255 or b > 255 or r < 0 or g < 0 and b < 0: 
-				raise ZeroDivisionError
-			listOfClients[id].colour = colour
+				await listOfClients[id].prerender()
 
+				skin_rer = await listOfClients[id].rerender()
+				bio = BytesIO()
+				bio.name = f'{id1}.png'
+				skin_rer.save(bio, 'PNG')
+				bio.seek(0)
+
+				msg = await message.answer_photo(bio, "Вот предварительный просмотр")
+				listOfClients[id].prewiew_id = msg
+
+
+				msg = await colorDialog(message, id)
+				listOfClients[id].info_id = msg
+
+			elif done == 2: await message.answer("Извините, скины до версии 1.8 не поддерживаются(")
 			
-			listOfClients[id].wait_to_file = 0
-			await render_and_edit(message, id, id1)
 
-			big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-				text='Готово ✓', callback_data='done_c')
+			else:
+				await message.answer("Аккаунт с таким именем не найден(")
+		if listOfClients[id].wait_to_file == 3:
+			try:
+				try: await listOfClients[id].error_msg.delete()
+				except: pass
+				await message.delete()
+				msg_c = message.text.lstrip('#')
 
-			big_button_5: InlineKeyboardButton = InlineKeyboardButton(
-				text='Изменить цвет', callback_data='colD')
+				input1 = msg_c.split(", ")
+				input2 = msg_c.split(",")
 
-			# Создаем объект инлайн-клавиатуры
-			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
-				inline_keyboard=[[big_button_4], [big_button_5]])
-			msg = await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
-			listOfClients[id].info_id = msg
+				if len(input1) == 1 and len(input2) == 1:
+					colour = tuple(int(msg_c[i:i + 2], 16) for i in (0, 2, 4))
+				else:
+					if len(input1) == 1:
+						colour = (int(input2[0]), int(input2[1]), int(input2[2]))
+					else:
+						colour = (int(input1[0]), int(input1[1]), int(input1[2]))
 
-		except Exception as e:
-			print(e)
-			msg = await message.answer("Не удалось получить цвет(\nПопробуйте ещё раз")
-			listOfClients[id].error_msg = msg
+				r, g, b = colour
+				if r > 255 or g > 255 or b > 255 or r < 0 or g < 0 and b < 0: 
+					raise ZeroDivisionError
+				listOfClients[id].colour = colour
+
+				
+				listOfClients[id].wait_to_file = 0
+				await render_and_edit(message, id, id1)
+
+				big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+					text='Готово ✓', callback_data='done_c')
+
+				big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+					text='Изменить цвет', callback_data='colD')
+
+				# Создаем объект инлайн-клавиатуры
+				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+					inline_keyboard=[[big_button_4], [big_button_5]])
+				msg = await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
+				listOfClients[id].info_id = msg
+
+			except Exception as e:
+				print(e)
+				msg = await message.answer("Не удалось получить цвет(\nПопробуйте ещё раз")
+				listOfClients[id].error_msg = msg
 
 
 if on_server: keep_alive()

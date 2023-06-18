@@ -1,5 +1,5 @@
 from minepi import Player
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageFont, ImageDraw
 from os import listdir
 from os.path import isfile, join
 
@@ -73,18 +73,24 @@ def crop(image, abs, slim):
     img = Image.open(image).convert("RGBA")
     w, h = img.size
     id = 1 if w == 5 else 0
-    if abs > 1: 
-        if abs == 2 and slim:
-            img_less = img.crop((0, 0, 2 if id else 1, 5))
-            img_h = img.crop((2 if id else 1, 0, 6, 4))
-            new_img.paste(img_less, (12 if id else 13, 0), img_less)
-            new_img.paste(img_h, (0, 0), img_h)
+    
+    if abs > 1:
+        if not id:
+            if abs == 2 and slim:
+                img_less = img.crop((0, 0, 1, 5))
+                img_h = img.crop((1, 0, 6, 4))
+                new_img.paste(img_less, (13, 0), img_less)
+                new_img.paste(img_h, (0, 0), img_h)
+            else:
+                img_less = img.crop((0, 0, 1, 5))
+                
+                img_h = img.crop((1, 0, 6, 4))
+                new_img.paste(img_less, (15, 0), img_less)
+                new_img.paste(img_h, (0, 0), img_h)
+
         else:
-            img_less = img.crop((0, 0, 2 if id else 1, 5))
-            
-            img_h = img.crop((2 if id else 1, 0, 6, 4))
-            new_img.paste(img_less, (14 if id else 15, 0), img_less)
-            new_img.paste(img_h, (0, 0), img_h)
+            if abs == 2 and slim: new_img.paste(img, (1, 0), img)
+            else: new_img.paste(img, (2, 0), img)
     else:
         new_img.paste(img, (7 - 1 if id else 7, 0), img)
     return new_img
@@ -250,11 +256,17 @@ class Client:
         img = self.mc_class.skin.skin
         
         new_img = None
-
+        r, g, b = self.average_col
+        not_aver = 255 - r, 255 - g, 255 - b
         width, height = img.size
+        fnt = ImageFont.truetype("res/font.ttf", 15)
+        
         new_img = Image.new('RGB', (height + 20, height + 20), average_col)
         new_img.paste(img, (round((height + 20) / 2) - round
                             (width / 2), 10), img)
+        
+        d = ImageDraw.Draw(new_img)
+        d.text((5, height), "by AndcoolSystems", font=fnt, fill=not_aver)
         return new_img
     
     

@@ -27,6 +27,7 @@ from datetime import datetime  #Модуль времени
 import pytz
 import time as time1
 from aiogram.utils.markdown import link
+from io import BytesIO
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -66,17 +67,19 @@ async def send_welcome(message: types.Message):
 #---------------------------------------------------------------------------------------------------
 async def render_and_edit(message, id, id1):
 	global listOfClients
+	bio = BytesIO()
 	skin_rer = await listOfClients[id].rerender()
-	skin_rer.save(f'1-{id1}.png')
 
-	photo = open(f'1-{id1}.png', 'rb')
-	photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
+	bio.name = f'{id1}.png'
+	skin_rer.save(bio, 'PNG')
+	bio.seek(0)
+	photo1 = types.input_media.InputMediaPhoto(media=bio, caption="Вот предварительный просмотр")
 
 	try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
 							     chat_id=listOfClients[id].prewiew_id.chat.id,
 								 message_id=listOfClients[id].prewiew_id.message_id)
 	except:pass
-	os.remove(f'1-{id1}.png')
+
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['start'])
@@ -131,8 +134,8 @@ async def send_welcome(message: types.Message):
 		userListFile1.close()
 		userListFile1 = open("usr_use.txt", 'a', encoding='utf-8')
 	if f_usr_list != []:
-		if not str(f"https://t.me/{message.from_user.username}") in f_usr_list:
-			userListFile.write(f"https://t.me/{message.from_user.username}\n")
+		if not str(f"{message.from_user.username} - {message.from_user.id}") in f_usr_list:
+			userListFile.write(f"{message.from_user.username} - {message.from_user.id}\n")
 
 	userListFile1.write(f"{message.from_user.username} - {now_time_format} - {message.from_user.id}\n")
 	userListFile.close()
@@ -221,15 +224,17 @@ async def handle_docs_photo(message: types.Message):
 				await listOfClients[id].prerender()
 
 				skin_rer = await listOfClients[id].rerender()
-				skin_rer.save(f'1-{id1}.png')
-				photo = open(f'1-{id1}.png', 'rb')
+				bio = BytesIO()
+				bio.name = f'{id1}.png'
+				skin_rer.save(bio, 'PNG')
+				bio.seek(0)
 
-				msg = await message.answer_photo(photo,
+				msg = await message.answer_photo(bio,
 												"Вот предварительный просмотр")
 				listOfClients[id].prewiew_id = msg
-				photo.close()
+				
 
-				os.remove(f'1-{id1}.png')
+
 				os.remove(f'{id1}.png')
 
 				msg = await colorDialog(message, id)
@@ -392,6 +397,51 @@ async def from_f(message: CallbackQuery):
 		return
 	await start_set(message.message)
 #---------------------------------------------------------------------------------------------------
+
+async def done_accept(message):
+	global listOfClients
+	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='Да ✓', callback_data='donetAccept')
+
+	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+		text='Нет ✗', callback_data='doneDeny')
+
+	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+		inline_keyboard=[[big_button_4], [big_button_5]])
+	await listOfClients[id].info_id.edit_text("Готово? После завершения отредактировать скин будет невозможно!", reply_markup=keyboard1)
+
+
+#---------------------------------------------------------------------------------------------------
+@dp.callback_query_handler(text="donetAccept")
+async def from_f(message: CallbackQuery):
+	global listOfClients
+	id1 = message.message.chat.id
+	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	bio = BytesIO()
+	bio.name = f'{id1}.png'
+	listOfClients[id].skin_raw.save(bio, 'PNG')
+	bio.seek(0)
+	await message.message.answer_document(bio)
+	await listOfClients[id].info_id.delete()
+	listOfClients.pop(id)
+
+@dp.callback_query_handler(text="doneDeny")
+async def from_f(message: CallbackQuery):
+	global listOfClients
+	id1 = message.message.chat.id
+	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	await start_set(message.message)
+#---------------------------------------------------------------------------------------------------
 async def colorDialog(message, id):
 	global listOfClients
 	
@@ -448,11 +498,7 @@ async def from_f(message: CallbackQuery):
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
-	listOfClients[id].skin_raw.save("2" + f'{id1}.png')
-	await message.message.answer_document(open("2" + f'{id1}.png', "rb"))
-	os.remove("2" + f'{id1}.png')
-	await listOfClients[id].info_id.delete()
-	listOfClients.pop(id)
+	await done_accept(message.message)
 
 #---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="bandage_dwnd")
@@ -463,9 +509,13 @@ async def from_f(message: CallbackQuery):
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
-	listOfClients[id].bandage.save("3" + f'{id1}.png')
-	await message.message.answer_document(open("3" + f'{id1}.png', "rb"))
-	os.remove("3" + f'{id1}.png')
+	
+	bio = BytesIO()
+	bio.name = f'{id1}.png'
+	listOfClients[id].bandage.save(bio, 'PNG')
+	bio.seek(0)
+	await message.message.answer_document(bio)
+
 
 #---------------------------------------------------------------------------------------------------
 async def start_set(message):
@@ -534,8 +584,8 @@ async def start_set(message):
 	listOfClients[id].change_e = not listOfClients[id].change_e
 	listOfClients[id].delete_mess = True
 	txt11 = "Алекс" if listOfClients[id].slim else "Стив"
-	txt1 = f"Версия скина: {txt11}\n"
-	txt2 = f"Позиция повязки: {listOfClients[id].pos}\n"
+	txt1 = f"*Версия скина:* {txt11}\n"
+	txt2 = f"*Позиция повязки:* {listOfClients[id].pos}\n"
 	txt12 = "Вкл" if listOfClients[id].overlay else "Выкл"
 
 	txt13 = "Выкл"
@@ -544,23 +594,23 @@ async def start_set(message):
 	elif listOfClients[id].first_layer == 2: txt13 = "Дублирование повязки"
 
 	body = ["Левая рука", "Левая нога", "Правая рука", "Правая нога"]
-	txt7 = f"Часть тела: {body[listOfClients[id].absolute_pos]}\n"
+	txt7 = f"*Часть тела:* {body[listOfClients[id].absolute_pos]}\n"
 
 	txt14 = "Вкл" if listOfClients[id].bw else "Выкл"
 	txt15 = "Вкл" if listOfClients[id].negative else "Выкл"
 	txt16 = "Вкл" if listOfClients[id].delete_pix else "Выкл"
 	e = "e" if listOfClients[id].change_e else "е"
-	txt3 = f"Оверлей: {txt12}\n"
-	txt4 = f"Первый слой: {txt13}\n"
-	txt5 = f"Чёрно-б{e}лый: {txt14}\n"
-	txt6 = f"Негатив: {txt15}\n"
-	txt8 = f"Удаление пикселей над повязкой: {txt16}\n"
+	txt3 = f"*Оверлей:* {txt12}\n"
+	txt4 = f"*Первый слой:* {txt13}\n"
+	txt5 = f"*Чёрно-б{e}лый:* {txt14}\n"
+	txt6 = f"*Негатив:* {txt15}\n"
+	txt8 = f"*Удаление пикселей над повязкой:* {txt16}\n"
 	
 	try:
 			
 		msg = await listOfClients[id].info_id.edit_text(
-			f"Параметры:\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}{txt8}",
-			reply_markup=keyboard3)
+			f"*Параметры:*\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}{txt8}",
+			reply_markup=keyboard3, parse_mode='Markdown')
 
 	except:pass
 
@@ -756,15 +806,16 @@ async def echo(message: types.Message):
 			await listOfClients[id].prerender()
 
 			skin_rer = await listOfClients[id].rerender()
-			skin_rer.save(f'1-{id1}.png')
-			photo = open(f'1-{id1}.png', 'rb')
+			bio = BytesIO()
+			bio.name = f'{id1}.png'
+			skin_rer.save(bio, 'PNG')
+			bio.seek(0)
 
-			msg = await message.answer_photo(photo, "Вот предварительный просмотр")
+			msg = await message.answer_photo(bio, "Вот предварительный просмотр")
 			listOfClients[id].prewiew_id = msg
-			photo.close()
+
 
 			msg = await colorDialog(message, id)
-			os.remove(f'1-{id1}.png')
 			listOfClients[id].info_id = msg
 
 		elif done == 2: await message.answer("Извините, скины до версии 1.8 не поддерживаются(")
@@ -797,17 +848,7 @@ async def echo(message: types.Message):
 
 			
 			listOfClients[id].wait_to_file = 0
-			skin_rer = await listOfClients[id].rerender()
-
-			skin_rer.save(f'1-{id1}.png')
-			photo = open(f'1-{id1}.png', 'rb')
-			photo1 = types.input_media.InputMediaPhoto(media=photo, caption="Вот предварительный просмотр")
-
-			try: listOfClients[id].prewiew_id = await bot.edit_message_media(photo1,
-										chat_id=listOfClients[id].prewiew_id.chat.id,
-										message_id=listOfClients[id].prewiew_id.message_id)
-			except:pass
-			photo.close()
+			await render_and_edit(message, id, id1)
 
 			big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 				text='Готово ✓', callback_data='done_c')
@@ -819,7 +860,6 @@ async def echo(message: types.Message):
 			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 				inline_keyboard=[[big_button_4], [big_button_5]])
 			msg = await listOfClients[id].info_id.edit_text("Готово?", reply_markup=keyboard1)
-			os.remove(f'1-{id1}.png')
 			listOfClients[id].info_id = msg
 
 		except Exception as e:

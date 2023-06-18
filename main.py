@@ -29,6 +29,7 @@ import time as time1
 from aiogram.utils.markdown import link
 from io import BytesIO
 import numpy as np
+import help_renderer
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -65,7 +66,7 @@ async def send_welcome(message: types.Message):
 			await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
 			np.save("Alert_not.npy", not_alert)
 			print(not_alert)
-		else: await message.answer(text="Оповещения уже включены")
+		else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
 
 
 
@@ -86,17 +87,19 @@ async def send_welcome(message: types.Message):
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['help'])
 async def send_welcome(message: types.Message):
-	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
-	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
-	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд andcoolsystems\n\n"
 	if on_server:
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
-		text5 = f"Версия *{ver}*\n"
+		text5 = ver
 		f.close()
-	else: text5 = ""
-	text4 = "*Created by AndcoolSystems*"
-	await message.answer(text=text1+text2+text3+text5+text4, parse_mode= 'Markdown')
+	else: text5 = "аэээ"
+	
+	bio = BytesIO()
+	bio.name = f'{message.from_user.id}.png'
+	help_renderer.render(text5).save(bio, 'PNG')
+	bio.seek(0)
+
+	msg = await message.answer_photo(bio)
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['changelog'])

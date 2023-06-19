@@ -41,7 +41,7 @@ dp = Dispatcher(bot)
 listOfClients = []
 andcool_alert = False
 if not os.path.exists("data/Alert_not.npy"):
-	not_alert = np.array([0])
+	not_alert = np.array([])
 	np.save("data/Alert_not.npy", not_alert)
 else:
 	not_alert = np.load("data/Alert_not.npy")
@@ -61,13 +61,13 @@ async def send_welcome(message: types.Message):
 async def send_welcome(message: types.Message):
 	global not_alert
 
-	if not_alert.size > 0:
-		if not message.from_user.id in not_alert: 
-			not_alert = np.append(not_alert, message.from_user.id)
-			await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
-			np.save("data/Alert_not.npy", not_alert)
-			print(not_alert)
-		else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
+	
+	if not message.from_user.id in not_alert: 
+		not_alert = np.append(not_alert, message.from_user.id)
+		await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
+		np.save("data/Alert_not.npy", not_alert)
+		print(not_alers)
+	else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
 
 
 
@@ -115,8 +115,12 @@ async def send_welcome(message: types.Message):
 	ver = "Обновление" + f.read().split("Обновление")[1]
 	f.close()
 
-	text = link('тут', 'https://github.com/AndcoolSystems7/PepelandBotChangelog/blob/main/README.md')
-	await message.answer(text=f"{ver}Полный список обновлений можно посмотреть {text}", parse_mode= 'Markdown')
+	big_button_1: InlineKeyboardButton = InlineKeyboardButton(
+		text='Полный список обновлений', url="https://github.com/AndcoolSystems7/PepelandBotChangelog/blob/main/README.md")
+
+	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
+		inline_keyboard=[[big_button_1]])
+	await message.answer(text=f"{ver}", parse_mode= 'Markdown', reply_markup=keyboard)
 
 
 #---------------------------------------------------------------------------------------------------
@@ -256,17 +260,12 @@ async def handle_docs_photo(message: types.Message):
 	
 	if andcool_alert == True and message.from_user.id == 1197005557:
 		
-		
 		await message.photo[-1].download(destination_file=f'alert.png')
-		
 
 		photo = open(f'alert.png', 'rb')
-
 		global not_alert
-
 		for x in not_alert:
 			if x != "\n" and x != "":
-				
 				try:
 					photo = open(f'alert.png', 'rb')
 					await bot.send_photo(chat_id=int(x), caption=f"{message.caption}\n\nВы всегда можете отключить оповещения отправив команду /stopalerts", photo=photo)

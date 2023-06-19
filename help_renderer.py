@@ -1,12 +1,17 @@
 from PIL import Image, ImageFont, ImageDraw
+import textwrap
+from os.path import isfile, join
+from os import listdir
+import random
 
-def render(version):
+def render():
     main = Image.open("res/help.png")
 
-    fnt = ImageFont.truetype("res/font.ttf", 25)
-    d = ImageDraw.Draw(main)
+    persons = [f for f in listdir("res/persons/help") if isfile(join("res/persons/help", f))]
 
-    d.text((180, 850), f"Версия: {version}", font=fnt, fill=(255, 255, 255))
-    d.text((180, 880), "Created by AndcoolSystems", font=fnt, fill=(255, 255, 255))
+    person = Image.open(f"res/persons/help/{persons[random.randint(0, len(persons) - 1)]}")
+
+    main.paste(person, (570, 210), person)
+
 
     return main

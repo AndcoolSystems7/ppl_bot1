@@ -16,7 +16,7 @@ logging.info(f"Running on {server_text} server")
 #print(f"INFO:Running on {server_text} server")
 
 if on_server: from background import keep_alive
-
+import aiogram
 import client
 import os
 from PIL import Image
@@ -30,6 +30,7 @@ from aiogram.utils.markdown import link
 from io import BytesIO
 import numpy as np
 import help_renderer
+import random
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -87,19 +88,24 @@ async def send_welcome(message: types.Message):
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['help'])
 async def send_welcome(message: types.Message):
+
+	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
+	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
+	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд andcoolsystems\n\n"
 	if on_server:
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
-		text5 = ver
+		text5 = f"Версия *{ver}*\n"
 		f.close()
-	else: text5 = "аэээ"
+	else: text5 = ""
+	text4 = "*Created by AndcoolSystems*"
 	
 	bio = BytesIO()
 	bio.name = f'{message.from_user.id}.png'
-	help_renderer.render(text5).save(bio, 'PNG')
+	help_renderer.render().save(bio, 'PNG')
 	bio.seek(0)
 
-	msg = await message.answer_photo(bio)
+	msg = await message.answer_photo(bio, caption=text1+text2+text3+text5+text4, parse_mode='Markdown')
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['changelog'])
@@ -151,9 +157,15 @@ async def send_welcome(message: types.Message):
 		text='По нику', callback_data='nick')
 
 	# Создаем объект инлайн-клавиатуры
-	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
-		inline_keyboard=[[big_button_2], [big_button_1]])
-	await message.answer("Привет! Давай начнём.\nОткуда брать скин?",
+	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
+	keyboard.row(big_button_2, big_button_1)
+	tt = "start_secret" if random.randint(0, 100) == 50 else "start"
+	welcome_msg = Image.open(f"res/{tt}.png")
+	bio = BytesIO()
+	bio.name = f'{message.from_user.id}.png'
+	welcome_msg.save(bio, 'PNG')
+	bio.seek(0)
+	await message.answer_photo(photo=bio, caption="Привет! Давай начнём.\nОткуда брать скин?",
 											 reply_markup=keyboard)
 	global listOfClients
 	if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
@@ -243,8 +255,10 @@ async def handle_docs_photo(message: types.Message):
 	global andcool_alert
 	
 	if andcool_alert == True and message.from_user.id == 1197005557:
-		if document := message.photo:
-			await message.photo[-1].download(destination_file=f'alert.png')
+		
+		
+		await message.photo[-1].download(destination_file=f'alert.png')
+		
 
 		photo = open(f'alert.png', 'rb')
 
@@ -280,9 +294,15 @@ async def handle_docs_photo(message: types.Message):
 
 	if listOfClients[id].wait_to_file == 1:
 		id1 = message.chat.id
-
+		#print(message.document.file_size)
 		if document := message.document:
-			await document.download(destination_file=f'{id1}.png')
+			try:
+				await document.download(destination_file=f'{id1}.png')
+			except aiogram.utils.exceptions.FileIsTooBig:
+				text1 = 'Ты серёзно пытался загрузить файл объёмом более *20 Мегабайт*?🤨\nЗачем? Обычный скин имеет объём примерно *4 Килобайт*.\nЧто ты хотел этим доказать?\n'
+				text2 = "Ты ждал много времени, пока загрузиться файл, ради чего? Ради минутной забавы?\nТы пытался показать боту, кто тут главный, но сам проиграл.\n"
+				await message.reply(text1 + text2, parse_mode="Markdown")
+				return
 		try:
 			usr_img = Image.open(f'{id1}.png').convert("RGBA")
 			w, h = usr_img.size

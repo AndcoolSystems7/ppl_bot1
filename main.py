@@ -55,6 +55,37 @@ async def send_welcome(message: types.Message):
 		await message.answer(text="Хорошо, AndcoolSystems, теперь отправь мне сообщение, которое я должен переслать другим")
 		andcool_alert = True
 
+#---------------------------------------------------------------------------------------------------
+
+@dp.message_handler(commands=['sendToId'])
+async def send_welcome(message: types.Message):
+	if message.from_user.id == 1197005557:
+		id = message.text.split(" ")[1]
+		text = " ".join(message.text.split(" ")[2:])
+		await bot.send_message(id, text)
+
+#---------------------------------------------------------------------------------------------------
+
+@dp.message_handler(commands=['support'])
+async def send_welcome(message: types.Message):
+	global listOfClients
+	if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
+	else:
+		finded = False
+		for add in range(len(listOfClients)):
+			if listOfClients[add].chat_id == message.chat.id:
+				finded == True
+				listOfClients[add] = client.Client(message.chat.id)
+				break
+		if not finded: listOfClients.append(client.Client(message.chat.id))
+
+	id1 = message.chat.id
+
+	id = client.find_client(listOfClients, message.chat.id)
+
+	listOfClients[id].wait_to_support = True
+	await message.answer(text="Окей, теперь отправь *одно* сообщение (можно фото с подписью), где описываете вашу проблему или вопрос.", parse_mode="Markdown")
+
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['startalerts'])
@@ -66,7 +97,6 @@ async def send_welcome(message: types.Message):
 		not_alert = np.append(not_alert, message.from_user.id)
 		await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
 		np.save("data/Alert_not.npy", not_alert)
-		print(not_alers)
 	else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
 
 
@@ -91,7 +121,7 @@ async def send_welcome(message: types.Message):
 
 	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
 	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
-	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд andcoolsystems\n\n"
+	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд andcoolsystems или отправив команду /support\n\n"
 	if on_server:
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
@@ -276,11 +306,23 @@ async def handle_docs_photo(message: types.Message):
 		andcool_alert = False
 	else:
 		id = client.find_client(listOfClients, message.chat.id)
+
 		if id == -1: 
 			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
-		if listOfClients[id].wait_to_file == 1:
+		
+		if listOfClients[id].wait_to_support:
+			await message.photo[-1].download(destination_file=f'file.png')
+			photo = open(f'file.png', 'rb')
+			await bot.send_photo(chat_id=1197005557, caption=f"{message.caption}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}", photo=photo)
+	
+			photo.close()
+			os.remove('file.png')
+			listOfClients[id].wait_to_support = False
+		elif listOfClients[id].wait_to_file == 1:
 			await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
+
+
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(content_types=['document'])
@@ -890,26 +932,27 @@ async def from_f(message: CallbackQuery):
 @dp.message_handler(content_types=['text'])
 async def echo(message: types.Message):
 	global andcool_alert
-	
-	if andcool_alert == True and message.from_user.id == 1197005557:
-		
+	global listOfClients
+	id = client.find_client(listOfClients, message.chat.id)
+	if id == -1: 
+		await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+	id1 = message.chat.id
 
+	if andcool_alert == True and message.from_user.id == 1197005557:
 		global not_alert
 
 		for x in not_alert:
 			if x != "\n" and x != "":
-				
 				try:
 					await bot.send_message(int(x), f"{message.text}\n\nВы всегда можете отключить оповещения отправив команду /stopalerts")
 				except: pass
 		andcool_alert = False
+	elif listOfClients[id].wait_to_support:
+		await bot.send_message(chat_id=1197005557, text=f"{message.text}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}")
+		listOfClients[id].wait_to_support = False
 	elif message.from_user.is_bot == False:
-		global listOfClients
-		id = client.find_client(listOfClients, message.chat.id)
-		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
-			return
-		id1 = message.chat.id
+		
 		#if listOfClients[id].delete_mess: await message.delete()
 	
 

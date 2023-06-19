@@ -196,11 +196,11 @@ class Client:
             
             if self.absolute_pos > 1: 
                 if self.absolute_pos == 2 and self.slim:
-                    img = Image.open("res/custom_right_arm.png")
+                    img = Image.open("res/header/custom_right_arm.png")
                 else:
-                    img = Image.open("res/custom_right.png")
+                    img = Image.open("res/header/custom_right.png")
             else:
-                img = Image.open("res/custom.png")
+                img = Image.open("res/header/custom.png")
             
             img = fill(img.copy(), self.colour)
 

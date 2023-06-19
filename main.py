@@ -15,9 +15,9 @@ server_text = "replit" if on_server else "local"
 logging.info(f"Running on {server_text} server")
 #print(f"INFO:Running on {server_text} server")
 
-if on_server: from background import keep_alive
+if on_server: from scripts.background import keep_alive
 import aiogram
-import client
+import scripts.client as client
 import os
 from PIL import Image
 from aiogram import Bot, Dispatcher, executor, types
@@ -29,7 +29,7 @@ import time as time1
 from aiogram.utils.markdown import link
 from io import BytesIO
 import numpy as np
-import help_renderer
+import scripts.help_renderer as help_renderer
 import random
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
@@ -40,11 +40,11 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 listOfClients = []
 andcool_alert = False
-if not os.path.exists("Alert_not.npy"):
+if not os.path.exists("data/Alert_not.npy"):
 	not_alert = np.array([0])
-	np.save("Alert_not.npy", not_alert)
+	np.save("data/Alert_not.npy", not_alert)
 else:
-	not_alert = np.load("Alert_not.npy")
+	not_alert = np.load("data/Alert_not.npy")
 
 print(not_alert)
 #---------------------------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ async def send_welcome(message: types.Message):
 		if not message.from_user.id in not_alert: 
 			not_alert = np.append(not_alert, message.from_user.id)
 			await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
-			np.save("Alert_not.npy", not_alert)
+			np.save("data/Alert_not.npy", not_alert)
 			print(not_alert)
 		else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
 
@@ -83,7 +83,7 @@ async def send_welcome(message: types.Message):
 				not_alert = np.delete(not_alert, counter)
 				await message.answer(text="Окей, теперь оповещения не будут приходить вам)\nВы всегда можете включить их обратно отправив /startalerts")
 			counter+=1
-		np.save("Alert_not.npy", not_alert)
+		np.save("data/Alert_not.npy", not_alert)
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['help'])
@@ -160,7 +160,7 @@ async def send_welcome(message: types.Message):
 	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
 	keyboard.row(big_button_2, big_button_1)
 	tt = "start_secret" if random.randint(0, 100) == 50 else "start"
-	welcome_msg = Image.open(f"res/{tt}.png")
+	welcome_msg = Image.open(f"res/presets/{tt}.png")
 	bio = BytesIO()
 	bio.name = f'{message.from_user.id}.png'
 	welcome_msg.save(bio, 'PNG')
@@ -179,24 +179,24 @@ async def send_welcome(message: types.Message):
 		if not finded: listOfClients.append(client.Client(message.chat.id))
 	f_usr_list = []
 
-	if os.path.isfile("usr.txt"):
-		userListFile = open("usr.txt", 'r', encoding='utf-8')
+	if os.path.isfile("data/usr.txt"):
+		userListFile = open("data/usr.txt", 'r', encoding='utf-8')
 		f_usr_list = userListFile.read().split("\n")
 		userListFile.close()
-		userListFile = open("usr.txt", 'a', encoding='utf-8')
+		userListFile = open("data/usr.txt", 'a', encoding='utf-8')
 
 	else:
-		userListFile = open("usr.txt", 'w', encoding='utf-8')
+		userListFile = open("data/usr.txt", 'w', encoding='utf-8')
 		userListFile.close()
-		userListFile = open("usr.txt", 'a', encoding='utf-8')
+		userListFile = open("data/usr.txt", 'a', encoding='utf-8')
 
-	if os.path.isfile("usr_use.txt"):
-		userListFile1 = open("usr_use.txt", 'a', encoding='utf-8')
+	if os.path.isfile("data/usr_use.txt"):
+		userListFile1 = open("data/usr_use.txt", 'a', encoding='utf-8')
 
 	else:
-		userListFile1 = open("usr_use.txt", 'w', encoding='utf-8')
+		userListFile1 = open("data/usr_use.txt", 'w', encoding='utf-8')
 		userListFile1.close()
-		userListFile1 = open("usr_use.txt", 'a', encoding='utf-8')
+		userListFile1 = open("data/usr_use.txt", 'a', encoding='utf-8')
 	if f_usr_list != []:
 		if not str(f"{message.from_user.username} - {message.from_user.id}") in f_usr_list:
 			userListFile.write(f"{message.from_user.username} - {message.from_user.id}\n")

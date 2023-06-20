@@ -1,5 +1,5 @@
 """
-Pepeland bondage bot
+Pepeland bandage bot
 Проект защищён авторским правом
 created by AndcoolSystems, 2023©
 """
@@ -31,6 +31,7 @@ from io import BytesIO
 import numpy as np
 import scripts.help_renderer as help_renderer
 import random
+import scripts.da as da
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -62,7 +63,7 @@ async def send_welcome(message: types.Message):
 	if message.from_user.id == 1197005557:
 		id = message.text.split(" ")[1]
 		text = " ".join(message.text.split(" ")[2:])
-		await bot.send_message(id, text)
+		await bot.send_message(id, "Ответ администратора:\n" + text)
 
 #---------------------------------------------------------------------------------------------------
 
@@ -121,7 +122,7 @@ async def send_welcome(message: types.Message):
 
 	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
 	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
-	text3 = "При возникновении вопросов или ошибок обращайтесь в Дискорд andcoolsystems или отправив команду /support\n\n"
+	text3 = "При возникновении вопросов или ошибок обращайтесь в *Дискорд andcoolsystems*\nили *отправив команду* /support\n\n"
 	if on_server:
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
@@ -129,13 +130,31 @@ async def send_welcome(message: types.Message):
 		f.close()
 	else: text5 = ""
 	text4 = "*Created by AndcoolSystems*"
-	
+	donate_text = ""
+	if os.path.isfile("data/donations.npy"):
+		donate_text = "\n\nЛюди, поддержавшие проект:\n"
+		donateList_npy = np.load("data/donations.npy")
+		donateList = donateList_npy.tolist()
+
+		count = 0
+		for x_p in range(len(donateList)):
+			if donateList[x_p][0] != 0:
+				count += 1
+		count = min(count, 10)
+
+		for x in range(count):
+			donate_text = f"{donate_text}{x + 1}. *{donateList[x][0]}* - {donateList[x][1]} *RUB*\n"
+
+		donate_text = donate_text + "\nХотите сюда? Тогда вы можете поддержать разработчика, отправив /donate"
+
+
+
 	bio = BytesIO()
 	bio.name = f'{message.from_user.id}.png'
 	help_renderer.render().save(bio, 'PNG')
 	bio.seek(0)
 
-	msg = await message.answer_photo(bio, caption=text1+text2+text3+text5+text4, parse_mode='Markdown')
+	msg = await message.answer_photo(bio, caption=text1+text2+text3+text5+text4+donate_text, parse_mode='Markdown')
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['changelog'])
@@ -314,7 +333,7 @@ async def handle_docs_photo(message: types.Message):
 		if listOfClients[id].wait_to_support:
 			await message.photo[-1].download(destination_file=f'file.png')
 			photo = open(f'file.png', 'rb')
-			await bot.send_photo(chat_id=1197005557, caption=f"{message.caption}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}", photo=photo)
+			await bot.send_photo(chat_id=-952490573, caption=f"{message.caption}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}", photo=photo)
 	
 			photo.close()
 			os.remove('file.png')
@@ -949,7 +968,7 @@ async def echo(message: types.Message):
 				except: pass
 		andcool_alert = False
 	elif listOfClients[id].wait_to_support:
-		await bot.send_message(chat_id=1197005557, text=f"{message.text}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}")
+		await bot.send_message(chat_id=-952490573, text=f"{message.text}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}")
 		listOfClients[id].wait_to_support = False
 	elif message.from_user.is_bot == False:
 		

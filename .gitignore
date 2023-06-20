@@ -1,7 +1,7 @@
 /usr.txt
 /usr_use.txt
 /__pycache__
-/aaa.py
-/Alerts.txt
-/Alerts_not.txt
-/Alert_not.npy
+/data/Alerts.txt
+/data/Alerts_not.txt
+/data/Alert_not.npy
+/data/donations.npy

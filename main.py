@@ -37,6 +37,8 @@ if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 
 
+
+
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 listOfClients = []
@@ -143,6 +145,7 @@ async def send_welcome(message: types.Message):
 		count = min(count, 10)
 
 		for x in range(count):
+
 			donate_text = f"{donate_text}{x + 1}. *{donateList[x][0]}* - {donateList[x][1]} *RUB*\n"
 
 		donate_text = donate_text + "\nХотите сюда? Тогда вы можете поддержать разработчика, отправив /donate"
@@ -213,6 +216,7 @@ async def send_welcome(message: types.Message):
 	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
 	keyboard.row(big_button_2, big_button_1)
 	tt = "start_secret" if random.randint(0, 100) == 50 else "start"
+	if tt == "start_secret": logging.info(f"{message.from_user.username} got a secret start image!")
 	welcome_msg = Image.open(f"res/presets/{tt}.png")
 	bio = BytesIO()
 	bio.name = f'{message.from_user.id}.png'
@@ -270,8 +274,8 @@ async def send_welcome(message: types.Message):
 
 	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_1]])
-	await message.answer("Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts",
-											 reply_markup=keyboard)
+	await message.answer(f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
+											 reply_markup=keyboard, parse_mode="Markdown")
 
 #---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="file")

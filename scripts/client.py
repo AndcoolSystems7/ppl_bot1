@@ -94,6 +94,16 @@ def crop(image, abs, slim):
     else:
         new_img.paste(img, (7 - 1 if id else 7, 0), img)
     return new_img
+def to64(skin):
+    new_img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+    img = skin.copy()
+    leg = img.crop((0, 16, 16, 32))
+    arm = img.crop((40, 16, 64, 32))
+    new_img.paste(leg, (16, 48), leg)
+    new_img.paste(arm, (32, 48), arm)
+    new_img.paste(img, (0, 0), img)
+
+    return new_img
 
 class Client:
     def __init__(self, chat_id):
@@ -161,16 +171,19 @@ class Client:
         else:
             self.skin_raw = self.mc_class._raw_skin
             self.first_skin1 = self.mc_class._raw_skin.copy()
-            w, h = self.skin_raw.size
-            if w == 64 and h == 32: done = 2
 
-            done = True
+            w, h = self.skin_raw.size
+            if w != 64 or h != 64:
+                self.skin_raw = self.first_skin1 = to64(self.skin_raw.copy())
+
+            
             for y_ch in range(3):
                 for x_ch in range(3):
                     r, g, b, t = self.skin_raw.getpixel((x_ch, y_ch))
                     if t != 0:
                         done = 3
                         break
+            
         return done
         
 

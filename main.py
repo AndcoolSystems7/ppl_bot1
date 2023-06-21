@@ -32,15 +32,19 @@ import numpy as np
 import scripts.help_renderer as help_renderer
 import random
 import scripts.da as da
+import aioschedule as schedule
+import asyncio
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 
-
+logger = logging.getLogger('schedule')
+logger.setLevel(logging.WARNING)
 
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
+da.init(bot, dp)
 listOfClients = []
 andcool_alert = False
 if not os.path.exists("data/Alert_not.npy"):
@@ -49,7 +53,20 @@ if not os.path.exists("data/Alert_not.npy"):
 else:
 	not_alert = np.load("data/Alert_not.npy")
 
-print(not_alert)
+
+
+#---------------------------------------------------------------------------------------------------
+@dp.message_handler(commands=['checkme'])
+async def send_welcome(message: types.Message):
+	list = da.get_list()
+	finded = False
+	for x in range(len(list)):
+		if int(list[x][2]) == message.from_user.id:
+			await message.answer(text=f"Здравствуйте, {list[x][0]}, ваш баланс {list[x][1]} *RUB*", parse_mode="Markdown")
+			logging.info(f"{list[x][0]}")
+			finded = True
+			break
+	if not finded: await message.answer(text=f"Вы ещё не донатили :)")
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['sendAlert'])
 async def send_welcome(message: types.Message):
@@ -268,15 +285,21 @@ async def send_welcome(message: types.Message):
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['donate'])
 async def send_welcome(message: types.Message):
-
+	"""img = Image.open("res/presets/thanks.png")
+	bio = BytesIO()
+	bio.name = f'{id}.png'
+	img.save(bio, 'PNG')
+	bio.seek(0)"""
+   
 	big_button_1: InlineKeyboardButton = InlineKeyboardButton(
 		text='DonationAlerts', url="https://www.donationalerts.com/r/andcool_systems")
 
 	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_1]])
+	"""await message.answer_photo(photo=bio, caption=f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
+											 reply_markup=keyboard, parse_mode="Markdown")"""
 	await message.answer(f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
 											 reply_markup=keyboard, parse_mode="Markdown")
-
 #---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="file")
 async def from_f(message: CallbackQuery):
@@ -1051,11 +1074,33 @@ async def echo(message: types.Message):
 
 
 if on_server: keep_alive()
+
+@dp.message_handler()
+async def event():
+	try:
+		event_da = da.get_event()
+		if event_da != -1:
+			for x in range(len(event_da)):
+				await bot.send_message(event_da[x][1], f"Пополнение на {event_da[x][0]} RUB")
+			da.reset_event()
+	except Exception:
+		pass
+
+
+async def scheduler():
+    schedule.every(5).seconds.do(event)
+    while True:
+        await schedule.run_pending()
+        await asyncio.sleep(1)
+        
+async def on_startup(dp): 
+    asyncio.create_task(scheduler())
+
 if __name__ == '__main__':
 	started = True
 	while started:
 		try:
-			executor.start_polling(dp, skip_updates=True)
+			executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
 			started = False
 		except Exception:
 			started = True

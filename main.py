@@ -35,6 +35,7 @@ import scripts.da as da
 import aioschedule as schedule
 import asyncio
 
+
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
 
@@ -54,7 +55,30 @@ else:
 	not_alert = np.load("data/Alert_not.npy")
 
 
-
+#---------------------------------------------------------------------------------------------------
+@dp.message_handler(commands=['changeUsername', 'changeBalance'])
+async def send_welcome(message: types.Message):
+	if message.from_user.id == 1197005557:
+		message_list = message.text.split(" ")
+		list = da.get_list()
+		id = -1
+		finded = False
+		for x in range(len(list)):
+			if int(list[x][2]) == int(message_list[1]):
+				finded = True
+				id = x
+				break
+		if not finded: await message.answer(text=f"User not found")
+		else:
+			if message_list[0] == '/changeUsername':
+				list[id][0] = message_list[2]
+				da.set_list(list)
+				await message.answer(text=f"Done")
+			
+			if message_list[0] == '/changeBalance':
+				list[id][1] = str(message_list[2])
+				da.set_list(list)
+				await message.answer(text=f"Done")
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['checkme'])
 async def send_welcome(message: types.Message):
@@ -155,15 +179,17 @@ async def send_welcome(message: types.Message):
 		donateList_npy = np.load("data/donations.npy")
 		donateList = donateList_npy.tolist()
 
+		donateList = da.sortir(donateList)
+
 		count = 0
 		for x_p in range(len(donateList)):
 			if donateList[x_p][0] != 0:
 				count += 1
 		count = min(count, 10)
-
+		emotes = ["🥇", "🥈", "🥉"]
 		for x in range(count):
-
-			donate_text = f"{donate_text}{x + 1}. *{donateList[x][0]}* - {donateList[x][1]} *RUB*\n"
+			emote = emotes[x] if x < 3 else ""
+			donate_text = f"{donate_text}{x + 1}. {emote}*{donateList[x][0]}* - {round(float(donateList[x][1]), 2)} *RUB*\n"
 
 		donate_text = donate_text + "\nХотите сюда? Тогда вы можете поддержать разработчика, отправив /donate"
 
@@ -1069,7 +1095,8 @@ async def echo(message: types.Message):
 
 			except Exception as e:
 				print(e)
-				msg = await message.answer("Не удалось получить цвет(\nПопробуйте ещё раз")
+				text1 = "Бот принимает цвета HEX и RGB, в форматах:\n#ffffff\nffffff\n255,255,255\n255, 255, 255 и т.п."
+				msg = await message.answer("Не удалось получить цвет(\n" + text1 + "\nПопробуйте ещё раз")
 				listOfClients[id].error_msg = msg
 
 
@@ -1079,10 +1106,15 @@ if on_server: keep_alive()
 async def event():
 	try:
 		event_da = da.get_event()
+		da.reset_event()
 		if event_da != -1:
 			for x in range(len(event_da)):
 				await bot.send_message(event_da[x][1], f"Пополнение на {event_da[x][0]} RUB")
-			da.reset_event()
+				await bot.send_message(chat_id=-952490573, text=f"{event_da[x][2]} пополнил баланс на {event_da[x][0]} RUB")
+
+				if float(event_da[x][3]) < 200 and float(event_da[x][4]) >= 200:
+					await bot.send_message(chat_id=-952490573, text=f"Сделать скин на картинку игроку {event_da[x][2]}")
+			
 	except Exception:
 		pass
 

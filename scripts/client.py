@@ -1,3 +1,4 @@
+
 from minepi import Player
 from PIL import Image, ImageEnhance, ImageFont, ImageDraw, ImageOps
 from os import listdir
@@ -109,9 +110,7 @@ class Client:
     def __init__(self, chat_id):
         self.chat_id = chat_id
         self.slim = None
-        self.pos = 4
-        self.colour = (-1, -1, -1)
-        self.wait_to_file = 0
+        self.slim_cust = None
         self.mc_class = None
         self.skin_raw = None #img
         self.prewiew_id = 0
@@ -119,18 +118,26 @@ class Client:
         self.delete_mess = False
         self.first_skin1 = None #img
         self.average_col = None
+        self.pose = 0
+        self.settings_mess = 0
+        self.change_e = 0
+        self.bandage = None
+        self.error_msg = None
+        self.wait_to_support = False
+        self.wait_to_file = 0
+
+        self.pos = 4
+        self.colour = (-1, -1, -1)
         self.first_layer = 1
         self.overlay = True
         self.bw = False
         self.negative = False
-        self.pose = 0
         self.absolute_pos = 0
-        self.settings_mess = 0
-        self.change_e = 0
         self.delete_pix = True
-        self.bandage = None
-        self.error_msg = None
-        self.wait_to_support = False
+
+        params = [
+                    [4, (-1, -1, -1), 1, True, False, False, 0, True]
+                ]
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
         self.y_f = [52, 52, 20, 20]
@@ -152,7 +159,15 @@ class Client:
         ]
         
         
-        
+    def reset(self):
+        self.pos = 4
+        self.colour = (-1, -1, -1)
+        self.first_layer = 1
+        self.overlay = True
+        self.bw = False
+        self.negative = False
+        self.absolute_pos = 0
+        self.delete_pix = True
     async def init_mc_f(self, usr_img):
         
         
@@ -203,6 +218,7 @@ class Client:
         
     
     async def rerender(self):
+        if self.slim_cust != None: self.slim = self.slim_cust
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
             if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
@@ -253,6 +269,9 @@ class Client:
         else: average_col = self.average_col
         self.mc_class = Player(name="abc", raw_skin=self.skin_raw)  # create a Player object by UUID
         await self.mc_class.initialize()
+
+
+        if self.slim_cust != None: self.mc_class.skin.is_slim = self.slim_cust
         
         await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
                                              vr=-20, 

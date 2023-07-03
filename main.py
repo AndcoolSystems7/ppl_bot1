@@ -166,6 +166,9 @@ async def send_welcome(message: types.Message):
 	text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
 	text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
 	text3 = "При возникновении вопросов или ошибок обращайтесь в *Дискорд andcoolsystems*\nили *отправив команду* /support\n\n"
+	link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
+	link2 = link('сайт', 'http://pplbandagebot.ru')
+	text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
 	if on_server:
 		f = open("pyproject.toml")
 		ver = f.read().split("\n")[2][11:-1]
@@ -200,7 +203,7 @@ async def send_welcome(message: types.Message):
 	help_renderer.render().save(bio, 'PNG')
 	bio.seek(0)
 
-	msg = await message.answer_photo(bio, caption=text1+text2+text3+text5+text4+donate_text, parse_mode='Markdown')
+	msg = await message.answer_photo(bio, caption=text1+text2+text3+text6+text5+text4+donate_text, parse_mode='Markdown')
 
 #---------------------------------------------------------------------------------------------------
 @dp.message_handler(commands=['changelog'])
@@ -211,7 +214,7 @@ async def send_welcome(message: types.Message):
 	f.close()
 
 	big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-		text='Полный список обновлений', url="https://github.com/AndcoolSystems7/PepelandBotChangelog/blob/main/README.md")
+		text='Полный список обновлений', url="http://pplbandagebot.ru/changelog.html")
 
 	keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
 		inline_keyboard=[[big_button_1]])
@@ -324,8 +327,11 @@ async def send_welcome(message: types.Message):
 		inline_keyboard=[[big_button_1]])
 	"""await message.answer_photo(photo=bio, caption=f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
 											 reply_markup=keyboard, parse_mode="Markdown")"""
-	await message.answer(f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
-											 reply_markup=keyboard, parse_mode="Markdown")
+	text = f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число `{message.from_user.id}`, а затем, через пробел оставьте своё сообщение."
+
+	
+	msg = await message.answer(text, reply_markup=keyboard)
+	
 #---------------------------------------------------------------------------------------------------
 @dp.callback_query_handler(text="file")
 async def from_f(message: CallbackQuery):
@@ -416,7 +422,8 @@ async def handle_docs_photo(message: types.Message):
 				text2 = "Ты ждал много времени, пока загрузиться файл, ради чего? Ради минутной забавы?\nТы пытался показать боту, кто тут главный, но сам проиграл.\n"
 				await message.reply(text1 + text2, parse_mode="Markdown")
 				return
-		try:
+		#try:
+		if True:
 			usr_img = Image.open(f'{id1}.png').convert("RGBA")
 			w, h = usr_img.size
 			done = True
@@ -458,11 +465,13 @@ async def handle_docs_photo(message: types.Message):
 				)
 				usr_img.close()
 				os.remove(f'{id1}.png')
-		except:
-			await message.reply(
-				"Пожалуйста, отправьте развёртку скина в формате png с разрешением 64х64 пикселей"
-			)
-			os.remove(f'{id1}.png')
+				print("w")
+		"""except Exception as e:
+									await message.reply(
+										"Пожалуйста, отправьте развёртку скина в формате png с разрешением 64х64 пикселей"
+									)
+									os.remove(f'{id1}.png')
+									print(e)"""
 
 
 #---------------------------------------------------------------------------------------------------
@@ -623,8 +632,11 @@ async def done_accept(message):
 	big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 		text='Нет ✗', callback_data='doneDeny')
 
+	big_button_6: InlineKeyboardButton = InlineKeyboardButton(
+		text='Готово, добавить ещё повязку', callback_data='doneadd')
+
 	keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
-		inline_keyboard=[[big_button_4], [big_button_5]])
+		inline_keyboard=[[big_button_4], [big_button_5], [big_button_6]])
 	await listOfClients[id].info_id.edit_text("Готово? После завершения отредактировать скин будет невозможно!", reply_markup=keyboard1)
 
 
@@ -654,6 +666,22 @@ async def from_f(message: CallbackQuery):
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
 	await start_set(message.message)
+
+
+@dp.callback_query_handler(text="doneadd")
+async def from_f(message: CallbackQuery):
+	global listOfClients
+	id1 = message.message.chat.id
+	id = client.find_client(listOfClients, message.message.chat.id)
+	if id == -1: 
+		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+		return
+
+	listOfClients[id].first_skin1 = listOfClients[id].skin_raw
+	listOfClients[id].reset()
+	msg = await colorDialog(message, id)
+	listOfClients[id].info_id = msg
+
 #---------------------------------------------------------------------------------------------------
 async def colorDialog(message, id):
 	global listOfClients
@@ -933,7 +961,7 @@ async def from_f(message: CallbackQuery):
 	if id == -1: 
 		await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 		return
-	if listOfClients[id].pos < 7:
+	if listOfClients[id].pos < 8:
 		listOfClients[id].pos += 1
 
 	await render_and_edit(message.message, id, id1)
@@ -1110,10 +1138,10 @@ async def event():
 		if event_da != -1:
 			for x in range(len(event_da)):
 				await bot.send_message(event_da[x][1], f"Пополнение на {event_da[x][0]} RUB")
-				await bot.send_message(chat_id=-952490573, text=f"{event_da[x][2]} пополнил баланс на {event_da[x][0]} RUB")
+				await bot.send_message(chat_id=-1001980044675, text=f"{event_da[x][2]} пополнил баланс на {event_da[x][0]} RUB")
 
 				if float(event_da[x][3]) < 200 and float(event_da[x][4]) >= 200:
-					await bot.send_message(chat_id=-952490573, text=f"Сделать скин на картинку игроку {event_da[x][2]}")
+					await bot.send_message(chat_id=-1001980044675, text=f"Сделать скин на картинку игроку {event_da[x][2]}")
 			
 	except Exception:
 		pass

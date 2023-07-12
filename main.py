@@ -29,7 +29,6 @@ import time as time1
 from aiogram.utils.markdown import link
 from io import BytesIO
 import numpy as np
-import scripts.help_renderer as help_renderer
 import random
 import scripts.da as da
 import aioschedule as schedule
@@ -37,7 +36,7 @@ import asyncio
 from aiogram.utils.exceptions import (MessageCantBeDeleted,
                                       MessageToDeleteNotFound)
 from contextlib import suppress
-
+import scripts.clientCommands as clientCommands
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -62,43 +61,8 @@ if not tech_raboty:
 	else:
 		not_alert = np.load("data/Alert_not.npy")
 
+	clientCommands.init(bot, dp, on_server)
 
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['changeUsername', 'changeBalance'])
-	async def send_welcome(message: types.Message):
-		if message.from_user.id == 1197005557:
-			message_list = message.text.split(" ")
-			list = da.get_list()
-			id = -1
-			finded = False
-			for x in range(len(list)):
-				if int(list[x][2]) == int(message_list[1]):
-					finded = True
-					id = x
-					break
-			if not finded: await message.answer(text="User not found")
-			else:
-				if message_list[0] == '/changeUsername':
-					list[id][0] = message_list[2]
-					da.set_list(list)
-					await message.answer(text=f"Done")
-				
-				if message_list[0] == '/changeBalance':
-					list[id][1] = str(message_list[2])
-					da.set_list(list)
-					await message.answer(text="Done")
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['checkme'])
-	async def send_welcome(message: types.Message):
-		list = da.get_list()
-		finded = False
-		for x in range(len(list)):
-			if int(list[x][2]) == message.from_user.id:
-				await message.answer(text=f"Здравствуйте, {list[x][0]}, ваш баланс {list[x][1]} *RUB*", parse_mode="Markdown")
-				logging.info(f"{list[x][0]}")
-				finded = True
-				break
-		if not finded: await message.answer(text=f"Вы ещё не донатили :)")
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['sendAlert'])
 	async def send_welcome(message: types.Message):
@@ -106,16 +70,6 @@ if not tech_raboty:
 		if message.from_user.id == 1197005557:
 			await message.answer(text="Хорошо, AndcoolSystems, теперь отправь мне сообщение, которое я должен переслать другим")
 			andcool_alert = True
-
-	#---------------------------------------------------------------------------------------------------
-
-	@dp.message_handler(commands=['sendToId'])
-	async def send_welcome(message: types.Message):
-		if message.from_user.id == 1197005557:
-			id = message.text.split(" ")[1]
-			text = " ".join(message.text.split(" ")[2:])
-			await bot.send_message(id, "Ответ администратора:\n" + text)
-
 	#---------------------------------------------------------------------------------------------------
 
 	@dp.message_handler(commands=['support'])
@@ -137,22 +91,15 @@ if not tech_raboty:
 
 		listOfClients[id].wait_to_support = True
 		await message.answer(text="Окей, теперь отправь *одно* сообщение (можно фото с подписью), где описываете вашу проблему или вопрос.", parse_mode="Markdown")
-
-
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['startalerts'])
 	async def send_welcome(message: types.Message):
 		global not_alert
-
-		
 		if not message.from_user.id in not_alert: 
 			not_alert = np.append(not_alert, message.from_user.id)
 			await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
 			np.save("data/Alert_not.npy", not_alert)
 		else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
-
-
-
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['stopalerts'])
 	async def send_welcome(message: types.Message):
@@ -166,69 +113,7 @@ if not tech_raboty:
 					await message.answer(text="Окей, теперь оповещения не будут приходить вам)\nВы всегда можете включить их обратно отправив /startalerts")
 				counter+=1
 			np.save("data/Alert_not.npy", not_alert)
-
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['help'])
-	async def send_welcome(message: types.Message):
-		link3 = link('Дискорд', 'https://discordapp.com/users/812990469482610729/')
-		text1 = "PPL повязка - это бот, созданный для наложения повязки Пепеленда на ваш скин.\n"
-		text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
-		text3 = f"При возникновении вопросов или ошибок обращайтесь в {link3}\nили *отправив команду* /support\n\n"
-		link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
-		link2 = link('сайт', 'http://pplbandagebot.ru')
-
-		text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
-		if on_server:
-			f = open("pyproject.toml")
-			ver = f.read().split("\n")[2][11:-1]
-			text5 = f"Версия *{ver}*\n"
-			f.close()
-		else: text5 = ""
-		text4 = "*Created by AndcoolSystems*"
-		donate_text = ""
-		if os.path.isfile("data/donations.npy"):
-			donate_text = "\n\nЛюди, поддержавшие проект:\n"
-			donateList_npy = np.load("data/donations.npy")
-			donateList = donateList_npy.tolist()
-
-			donateList = da.sortir(donateList)
-
-			count = 0
-			for x_p in range(len(donateList)):
-				if donateList[x_p][0] != 0:
-					count += 1
-			count = min(count, 10)
-			emotes = ["🥇", "🥈", "🥉"]
-			for x in range(count):
-				emote = emotes[x] if x < 3 else ""
-				donate_text = f"{donate_text}{x + 1}. {emote}*{donateList[x][0]}* - {round(float(donateList[x][1]), 2)} *RUB*\n"
-
-			donate_text = donate_text + "\nХотите сюда? Тогда вы можете поддержать разработчика, отправив /donate"
-
-
-
-		bio = BytesIO()
-		bio.name = f'{message.from_user.id}.png'
-		help_renderer.render().save(bio, 'PNG')
-		bio.seek(0)
-
-		msg = await message.answer_photo(bio, caption=text1+text2+text3+text6+text5+text4+donate_text, parse_mode='Markdown')
-
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['changelog'])
-	async def send_welcome(message: types.Message):
-		
-		f = open("README.md", encoding="UTF8")
-		ver = "Обновление" + f.read().split("Обновление")[1]
-		f.close()
-
-		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-			text='Полный список обновлений', url="http://pplbandagebot.ru/changelog.html")
-
-		keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
-			inline_keyboard=[[big_button_1]])
-		await message.answer(text=f"{ver}", parse_mode= 'Markdown', reply_markup=keyboard)
-
+	
 
 	#---------------------------------------------------------------------------------------------------
 	async def render_and_edit(message, id, id1):
@@ -245,8 +130,6 @@ if not tech_raboty:
 									chat_id=listOfClients[id].prewiew_id.chat.id,
 									message_id=listOfClients[id].prewiew_id.message_id)
 		except:pass
-
-
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['start'])
 	async def send_welcome(message: types.Message):
@@ -318,28 +201,6 @@ if not tech_raboty:
 		userListFile1.close()
 
 		
-
-
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['donate'])
-	async def send_welcome(message: types.Message):
-		"""img = Image.open("res/presets/thanks.png")
-		bio = BytesIO()
-		bio.name = f'{id}.png'
-		img.save(bio, 'PNG')
-		bio.seek(0)"""
-	
-		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-			text='DonationAlerts', url="https://www.donationalerts.com/r/andcool_systems")
-
-		keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
-			inline_keyboard=[[big_button_1]])
-		"""await message.answer_photo(photo=bio, caption=f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
-												reply_markup=keyboard, parse_mode="Markdown")"""
-		text = f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число `{message.from_user.id}`, а затем, через пробел оставьте своё сообщение."
-
-		
-		await message.answer(text, reply_markup=keyboard)
 		
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="file")
@@ -353,7 +214,6 @@ if not tech_raboty:
 			'Хорошо, теперь отправь мне свой скин.\nОбязательно при отправке убери галочку "Сжать изображение"'
 		)
 		await message.message.delete()
-		
 		listOfClients[id].wait_to_file = 1
 
 	#---------------------------------------------------------------------------------------------------
@@ -376,7 +236,6 @@ if not tech_raboty:
 		global andcool_alert
 		
 		if andcool_alert == True and message.from_user.id == 1197005557:
-			
 			await message.photo[-1].download(destination_file=f'alert.png')
 
 			photo = open(f'alert.png', 'rb')
@@ -393,7 +252,6 @@ if not tech_raboty:
 			andcool_alert = False
 		else:
 			id = client.find_client(listOfClients, message.chat.id)
-
 			if id == -1: 
 				await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 				return
@@ -402,10 +260,10 @@ if not tech_raboty:
 				await message.photo[-1].download(destination_file=f'file.png')
 				photo = open(f'file.png', 'rb')
 				await bot.send_photo(chat_id=-1001980044675, caption=f"{message.caption}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}", photo=photo)
-		
 				photo.close()
 				os.remove('file.png')
 				listOfClients[id].wait_to_support = False
+
 			elif listOfClients[id].wait_to_file == 1:
 				await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
 
@@ -422,8 +280,6 @@ if not tech_raboty:
 			return
 
 		if listOfClients[id].wait_to_file == 1:
-			
-			#print(message.document.file_size)
 			if document := message.document:
 				try:
 					await document.download(destination_file=f'{id1}.png')
@@ -432,53 +288,44 @@ if not tech_raboty:
 					text2 = "Ты ждал много времени, пока загрузиться файл, ради чего? Ради минутной забавы?\nТы пытался показать боту, кто тут главный, но сам проиграл.\n"
 					await message.reply(text1 + text2, parse_mode="Markdown")
 					return
-			#try:
-			if True:
-				usr_img = Image.open(f'{id1}.png').convert("RGBA")
-				w, h = usr_img.size
-				done = True
-				for y_ch in range(3):
-					for x_ch in range(3):
-						r, g, b, t = usr_img.getpixel((x_ch, y_ch))
-						if t != 0:
-							done = False
-							break
 
-				if not done:
-					await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+			usr_img = Image.open(f'{id1}.png').convert("RGBA")
+			w, h = usr_img.size
+			done = True
+			for y_ch in range(3):
+				for x_ch in range(3):
+					r, g, b, t = usr_img.getpixel((x_ch, y_ch))
+					if t != 0:
+						done = False
+						break
+
+			if not done:
+				await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
 		
-				if w == 64 and h == 64:
-					await listOfClients[id].init_mc_f(usr_img)
-					listOfClients[id].wait_to_file = 0
+			if w == 64 and h == 64:
+				await listOfClients[id].init_mc_f(usr_img)
+				listOfClients[id].wait_to_file = 0
+				await listOfClients[id].prerender()
 
-					await listOfClients[id].prerender()
+				skin_rer = await listOfClients[id].rerender()
+				bio = BytesIO()
+				bio.name = f'{id1}.png'
+				skin_rer.save(bio, 'PNG')
+				bio.seek(0)
 
-					skin_rer = await listOfClients[id].rerender()
-					bio = BytesIO()
-					bio.name = f'{id1}.png'
-					skin_rer.save(bio, 'PNG')
-					bio.seek(0)
+				msg = await message.answer_photo(bio, "Вот предварительный просмотр")
+				listOfClients[id].prewiew_id = msg
+				os.remove(f'{id1}.png')
 
-					msg = await message.answer_photo(bio,
-													"Вот предварительный просмотр")
-					listOfClients[id].prewiew_id = msg
-					
-
-
-					os.remove(f'{id1}.png')
-
-					msg = await colorDialog(message, id)
-					listOfClients[id].info_id = msg
-				else:
-					await message.reply(
-						"Пожалуйста, отправьте развёртку скина в формате png с разрешением 64х64 пикселей"
-					)
-					usr_img.close()
-					os.remove(f'{id1}.png')
+				msg = await colorDialog(message, id)
+				listOfClients[id].info_id = msg
+			else:
+				await message.reply("Пожалуйста, отправьте развёртку скина в формате png с разрешением 64х64 пикселей")
+				usr_img.close()
+				os.remove(f'{id1}.png')
 
 		if listOfClients[id].wait_to_file == 4:
 			listOfClients[id].wait_to_file = 0
-			await listOfClients[id].import_msg.delete()
 			if document := message.document:
 				await document.download(destination_file=f'paramImported{id1}.json')
 			await message.delete()
@@ -504,7 +351,6 @@ if not tech_raboty:
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
 
-
 		colours = [(61, 58, 201), (250, 213, 30), (85, 163, 64), (176, 30, 30), (252, 15, 192), (105, 0, 198), (255, 102, 0), (0, 0, 0), (255, 255, 255)]
 		listOfClients[id].colour = colours[colour_txt.index(message.data)]
 
@@ -515,10 +361,9 @@ if not tech_raboty:
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="done_c")
 	async def from_f(message: CallbackQuery):
-
 		id1 = message.message.chat.id
 		global listOfClients
-		id = client.find_client(listOfClients, message.message.chat.id)
+		id = client.find_client(listOfClients, id1)
 		if id == -1: 
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
@@ -530,16 +375,13 @@ if not tech_raboty:
 
 		id1 = message.message.chat.id
 		global listOfClients
-		id = client.find_client(listOfClients, message.message.chat.id)
+		id = client.find_client(listOfClients, id1)
 		if id == -1: 
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
 		await listOfClients[id].info_id.delete()
 		listOfClients[id].colour = 5
-
 		listOfClients[id].wait_to_file = 3
-
-		#await message.message.delete()
 
 		msg = await message.message.answer(
 			"Теперь отправьте свой цвет в формате *HEX* или *RGB*\nЦвет можно получить на сайте https://colorscheme.ru/color-converter.html", parse_mode= 'Markdown'
@@ -835,11 +677,11 @@ if not tech_raboty:
 
 		# Создаем объект инлайн-клавиатуры
 		keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
-		keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, pass_btn)
-		keyboard3.row(info_btn, overlay_btn,     pepetype_btn, reset_btn)
-		keyboard3.row(down_btn, pose_btn,        negative_btn, bndg_downl)
-		keyboard3.row(pass_btn, delete_btn,        bw_btn,       donw_btn)
-		keyboard3.row(export, importpar,        pass_btn,       pass_btn)
+		keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, export)
+		keyboard3.row(info_btn, overlay_btn,     pepetype_btn, importpar)
+		keyboard3.row(down_btn, pose_btn,        negative_btn, reset_btn)
+		keyboard3.row(pass_btn, delete_btn,        bw_btn,       bndg_downl)
+		keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
 		
 
 		
@@ -906,8 +748,7 @@ if not tech_raboty:
 				# Создаем объект инлайн-клавиатуры
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 						inline_keyboard=[[deny_import]])
-		msg = await message.message.answer("Окей, теперь отправьте файл настроек в формате JSON", reply_markup=keyboard1)
-		listOfClients[id].import_msg = msg
+		await listOfClients[id].info_id.edit_text("Окей, теперь отправьте файл настроек в формате JSON", reply_markup=keyboard1)
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="denyImp")
@@ -918,8 +759,8 @@ if not tech_raboty:
 		if id == -1: 
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
-		await message.message.delete()
 		listOfClients[id].wait_to_file = 0
+		await start_set(message.message)
 	#---------------------------------------------------------------------------------------------------
 
 	@dp.callback_query_handler(text="reset")

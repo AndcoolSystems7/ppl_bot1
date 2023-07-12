@@ -3,6 +3,7 @@ from minepi import Player
 from PIL import Image, ImageEnhance, ImageFont, ImageDraw, ImageOps
 from os import listdir
 from os.path import isfile, join
+import json
 
 
 def transparent_negative(img):
@@ -125,6 +126,7 @@ class Client:
         self.error_msg = None
         self.wait_to_support = False
         self.wait_to_file = 0
+        self.import_msg = -1
 
         self.pos = 4
         self.colour = (-1, -1, -1)
@@ -134,10 +136,8 @@ class Client:
         self.negative = False
         self.absolute_pos = 0
         self.delete_pix = True
-
-        params = [
-                    [4, (-1, -1, -1), 1, True, False, False, 0, True]
-                ]
+        self.pepe_type = 0
+    
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
         self.y_f = [52, 52, 20, 20]
@@ -145,7 +145,7 @@ class Client:
         self.y_o = [52, 52, 36, 36]
 
         self.pepes = [f for f in listdir("res/pepes") if isfile(join("res/pepes", f))]
-        self.pepe_type = 0
+        
 
         self.poses = [
             [0,  20, 10, 0], #vrll
@@ -168,9 +168,8 @@ class Client:
         self.negative = False
         self.absolute_pos = 0
         self.delete_pix = True
+
     async def init_mc_f(self, usr_img):
-        
-        
         self.mc_class = Player(name="abc", raw_skin=usr_img)  # create a Player object by UUID
         await self.mc_class.initialize()
         self.skin_raw = usr_img
@@ -191,7 +190,6 @@ class Client:
             if w != 64 or h != 64:
                 self.skin_raw = self.first_skin1 = to64(self.skin_raw.copy())
 
-            
             for y_ch in range(3):
                 for x_ch in range(3):
                     r, g, b, t = self.skin_raw.getpixel((x_ch, y_ch))
@@ -201,13 +199,44 @@ class Client:
             
         return done
         
+    def exportJSON(self, chat):
+        params = {
+            "position": self.pos, 
+            "firstLayer": self.first_layer, 
+            "overlay": self.overlay, 
+            "bw": self.bw, 
+            "negative": self.negative, 
+            "absolutePos": self.absolute_pos, 
+            "layerDelete": self.delete_pix,
+            "pepeType": self.pepe_type
+        }
+
+        json_object = json.dumps(params, indent=8)
+ 
+        # Writing to sample.json
+        with open(f"params{chat}.json", "w") as outfile:
+            outfile.write(json_object)
+
+    def importJSON(self, chat):
+        with open(f'paramImported{chat}.json', 'r') as openfile:
+            json_object = json.load(openfile)
+
+        
+        self.pos = int(json_object["position"])
+        self.first_layer = int(json_object["firstLayer"])
+        self.overlay = json_object["overlay"]
+        self.bw = json_object["bw"]
+        self.negative = json_object["negative"]
+        self.absolute_pos = int(json_object["absolutePos"])
+        self.delete_pix = json_object["layerDelete"]
+        self.pepe_type = int(json_object["pepeType"])
+        
 
     async def prerender(self):
-        if self.bw: self.skin_raw = self.skin_raw.convert('LA').copy()
+        if self.bw: self.skin_raw = bw_mode(self.skin_raw).copy()
         if self.negative: self.skin_raw = transparent_negative(self.skin_raw)
         
-        mc_class = Player(name="abc", raw_skin=self.skin_raw)  # create a Player object by UUID
-        #self.skin_raw = self.first_skin1
+        mc_class = Player(name="abc", raw_skin=self.skin_raw)
         self.slim = self.mc_class.skin.is_slim
         await mc_class.initialize()
         
@@ -215,22 +244,16 @@ class Client:
         img = mc_class.skin.skin
         self.average_col = average_colour(img.copy())
         
-        
-    
     async def rerender(self):
         if self.slim_cust != None: self.slim = self.slim_cust
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
             if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
 
-            
             if self.absolute_pos > 1: 
-                if self.absolute_pos == 2 and self.slim:
-                    img = Image.open("res/header/custom_right_arm.png")
-                else:
-                    img = Image.open("res/header/custom_right.png")
-            else:
-                img = Image.open("res/header/custom.png")
+                if self.absolute_pos == 2 and self.slim: img = Image.open("res/header/custom_right_arm.png")
+                else: img = Image.open("res/header/custom_right.png")
+            else: img = Image.open("res/header/custom.png")
             
             img = fill(img.copy(), self.colour)
 
@@ -238,8 +261,6 @@ class Client:
             img1 = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
             img.paste(img1, (0, 0), img1)
 
-
-            
             
             sl = self.slim and (self.absolute_pos == 0)
             if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)
@@ -256,18 +277,16 @@ class Client:
             self.bandage = bond
 
             img.close()
-        if self.bw:
-            self.skin_raw = bw_mode(self.skin_raw).copy()
-            #enhancer = ImageEnhance.Contrast(self.skin_raw)
-            #factor = 1.5 
-            #self.skin_raw = enhancer.enhance(factor)
+        if self.bw: self.skin_raw = bw_mode(self.skin_raw).copy()
 
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)
             r, g, b = self.average_col
             average_col = 255 - r, 255 - g, 255 - b
+        
         else: average_col = self.average_col
-        self.mc_class = Player(name="abc", raw_skin=self.skin_raw)  # create a Player object by UUID
+
+        self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
         await self.mc_class.initialize()
 
 

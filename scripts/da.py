@@ -17,7 +17,8 @@ if not os.path.isfile("data/donations.npy"):
                   ["veel1en", 400.99, 1084649863],
                   ["rorik", 350.0, 1418299420],
                   ["ModErator5937", 275.0, 1255297867],
-                  ["Гамдав", 50.0, 995824148]]
+                  ["Гамдав", 50.0, 995824148],
+                  ["Andcool", 100000, 1197005557]]
     numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
 else: 
     donateList_npy = numpy.load("data/donations.npy")
@@ -75,6 +76,7 @@ def new_donation(event):
     id = -1
     idd = -1
     username = event.username
+    if username == None: username = "Аноним"
     last_balance = 0
     balance_now = 0
     if event.message != None: 
@@ -82,7 +84,7 @@ def new_donation(event):
         except:pass
     if True: #if event.username != "AndcoolSystems":
         for x in range(len(donateList)):
-            if event.username == donateList[x][0]:
+            if username == donateList[x][0]:
                 last_balance = float(donateList[x][1])
                 id = int(donateList[x][2])
                 try: 
@@ -111,9 +113,9 @@ def new_donation(event):
                 pop_c += 1
         
         try: 
-            if not finded: donateList.append([event.username, float(event.amount_main), int(event.message.split(" ")[0])])
+            if not finded: donateList.append([username, float(event.amount_main), int(event.message.split(" ")[0])])
         except: 
-            if not finded: donateList.append([event.username, float(event.amount_main), -1])
+            if not finded: donateList.append([username, float(event.amount_main), -1])
 
         balance_now = float(donateList[idd][1])
         for x_s in range(len(donateList)):

@@ -34,6 +34,9 @@ import random
 import scripts.da as da
 import aioschedule as schedule
 import asyncio
+from aiogram.utils.exceptions import (MessageCantBeDeleted,
+                                      MessageToDeleteNotFound)
+from contextlib import suppress
 
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
@@ -46,6 +49,10 @@ logger.setLevel(logging.WARNING)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 da.init(bot, dp)
+async def delete_message(message: types.Message, sleep_time: int = 0):
+    await asyncio.sleep(sleep_time)
+    with suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
+        await message.delete()
 if not tech_raboty:
 	listOfClients = []
 	andcool_alert = False
@@ -69,7 +76,7 @@ if not tech_raboty:
 					finded = True
 					id = x
 					break
-			if not finded: await message.answer(text=f"User not found")
+			if not finded: await message.answer(text="User not found")
 			else:
 				if message_list[0] == '/changeUsername':
 					list[id][0] = message_list[2]
@@ -79,7 +86,7 @@ if not tech_raboty:
 				if message_list[0] == '/changeBalance':
 					list[id][1] = str(message_list[2])
 					da.set_list(list)
-					await message.answer(text=f"Done")
+					await message.answer(text="Done")
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['checkme'])
 	async def send_welcome(message: types.Message):
@@ -332,7 +339,7 @@ if not tech_raboty:
 		text = f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число `{message.from_user.id}`, а затем, через пробел оставьте своё сообщение."
 
 		
-		msg = await message.answer(text, reply_markup=keyboard)
+		await message.answer(text, reply_markup=keyboard)
 		
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="file")
@@ -409,12 +416,13 @@ if not tech_raboty:
 	async def handle_docs_photo(message: types.Message):
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
+		id1 = message.chat.id
 		if id == -1: 
 			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
 
 		if listOfClients[id].wait_to_file == 1:
-			id1 = message.chat.id
+			
 			#print(message.document.file_size)
 			if document := message.document:
 				try:
@@ -467,14 +475,21 @@ if not tech_raboty:
 					)
 					usr_img.close()
 					os.remove(f'{id1}.png')
-					print("w")
-			"""except Exception as e:
-										await message.reply(
-											"Пожалуйста, отправьте развёртку скина в формате png с разрешением 64х64 пикселей"
-										)
-										os.remove(f'{id1}.png')
-										print(e)"""
 
+		if listOfClients[id].wait_to_file == 4:
+			listOfClients[id].wait_to_file = 0
+			await listOfClients[id].import_msg.delete()
+			if document := message.document:
+				await document.download(destination_file=f'paramImported{id1}.json')
+			await message.delete()
+			try:
+				listOfClients[id].importJSON(id1)
+			except: 
+				msg = await message.answer("Не удалось корректно прочитать файл настроек")
+				asyncio.create_task(delete_message(msg, 5))
+			await render_and_edit(message, id, id1)
+			os.remove(f'paramImported{id1}.json')
+			await start_set(message)
 
 	#---------------------------------------------------------------------------------------------------
 	colour_txt = ["blue", "yellow", "green", "red", "pink", "violet", "orange", "black", "white"]
@@ -813,7 +828,10 @@ if not tech_raboty:
 		pass_btn: InlineKeyboardButton = InlineKeyboardButton(
 			text='-', callback_data='passs')
 		
-		
+		export: InlineKeyboardButton = InlineKeyboardButton(
+			text='Экспортировать настройки', callback_data='exp')
+		importpar: InlineKeyboardButton = InlineKeyboardButton(
+			text='Импортировать настройки', callback_data='imp')
 
 		# Создаем объект инлайн-клавиатуры
 		keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
@@ -821,6 +839,7 @@ if not tech_raboty:
 		keyboard3.row(info_btn, overlay_btn,     pepetype_btn, reset_btn)
 		keyboard3.row(down_btn, pose_btn,        negative_btn, bndg_downl)
 		keyboard3.row(pass_btn, delete_btn,        bw_btn,       donw_btn)
+		keyboard3.row(export, importpar,        pass_btn,       pass_btn)
 		
 
 		
@@ -857,7 +876,52 @@ if not tech_raboty:
 
 		except:pass
 
+
+
 	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="exp")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		listOfClients[id].exportJSON(id1)
+		await message.message.answer_document(open(f"params{id1}.json", 'rb'))
+		os.remove(f'params{id1}.json')
+
+	@dp.callback_query_handler(text="imp")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		listOfClients[id].wait_to_file = 4
+		deny_import: InlineKeyboardButton = InlineKeyboardButton(
+			text='Отмена', callback_data='denyImp')
+
+				# Создаем объект инлайн-клавиатуры
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+						inline_keyboard=[[deny_import]])
+		msg = await message.message.answer("Окей, теперь отправьте файл настроек в формате JSON", reply_markup=keyboard1)
+		listOfClients[id].import_msg = msg
+
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="denyImp")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		await message.message.delete()
+		listOfClients[id].wait_to_file = 0
+	#---------------------------------------------------------------------------------------------------
+
 	@dp.callback_query_handler(text="reset")
 	async def from_f(message: CallbackQuery):
 

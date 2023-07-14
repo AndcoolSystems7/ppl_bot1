@@ -101,9 +101,58 @@ def to64(skin):
     img = skin.copy()
     leg = img.crop((0, 16, 16, 32))
     arm = img.crop((40, 16, 64, 32))
+
     new_img.paste(leg, (16, 48), leg)
     new_img.paste(arm, (32, 48), arm)
     new_img.paste(img, (0, 0), img)
+
+    leg_1 = img.crop((0, 20, 4, 32))
+    leg_1 = ImageOps.mirror(leg_1)
+    new_img.paste(leg_1, (24, 52), leg_1)
+
+    leg_2 = img.crop((8, 20, 12, 32))
+    leg_2 = ImageOps.mirror(leg_2)
+    new_img.paste(leg_2, (16, 52), leg_2)
+
+    leg_2 = img.crop((4, 20, 8, 32))
+    leg_2_m = ImageOps.mirror(leg_2)
+    new_img.paste(leg_2_m, (20, 52), leg_2_m)
+
+    leg_2 = img.crop((12, 20, 16, 32))
+    leg_2_m = ImageOps.mirror(leg_2)
+    new_img.paste(leg_2_m, (28, 52), leg_2_m)
+
+    leg_2 = img.crop((4, 16, 8, 20))
+    leg_2_m = ImageOps.mirror(leg_2)
+    new_img.paste(leg_2_m, (20, 48), leg_2_m)
+
+    leg_2 = img.crop((8, 16, 12, 20))
+    leg_2_m = ImageOps.mirror(leg_2)
+    new_img.paste(leg_2_m, (24, 48), leg_2_m)
+
+    arm_1 = img.crop((40, 20, 44, 32))
+    arm_1 = ImageOps.mirror(arm_1)
+    new_img.paste(arm_1, (40, 52), arm_1)
+
+    arm_1 = img.crop((48, 20, 52, 32))
+    arm_1 = ImageOps.mirror(arm_1)
+    new_img.paste(arm_1, (32, 52), arm_1)
+
+    arm_1 = img.crop((44, 20, 48, 32))
+    arm_1_m = ImageOps.mirror(arm_1)
+    new_img.paste(arm_1_m, (36, 52), arm_1_m)
+
+    arm_1 = img.crop((52, 20, 56, 32))
+    arm_1_m = ImageOps.mirror(arm_1)
+    new_img.paste(arm_1_m, (44, 52), arm_1_m)
+
+    arm_1 = img.crop((44, 16, 48, 20))
+    arm_1_m = ImageOps.mirror(arm_1)
+    new_img.paste(arm_1_m, (36, 48), arm_1_m)
+
+    arm_1 = img.crop((48, 16, 52, 20))
+    arm_1_m = ImageOps.mirror(arm_1)
+    new_img.paste(arm_1_m, (40, 48), arm_1_m)
 
     return new_img
 

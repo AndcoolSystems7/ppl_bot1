@@ -210,11 +210,12 @@ if not tech_raboty:
 		if id == -1: 
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
-		await message.message.answer(
+		msg = await message.message.answer(
 			'Хорошо, теперь отправь мне свой скин.\nОбязательно при отправке убери галочку "Сжать изображение"'
 		)
 		await message.message.delete()
 		listOfClients[id].wait_to_file = 1
+		listOfClients[id].import_msg = msg
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="nick")
@@ -224,10 +225,11 @@ if not tech_raboty:
 		if id == -1: 
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
-		await message.message.answer("Хорошо, теперь отправь мне свой никнейм.")
+		msg = await message.message.answer("Хорошо, теперь отправь мне свой никнейм.")
 		await message.message.delete()
 		
 		listOfClients[id].wait_to_file = 2
+		listOfClients[id].import_msg = msg
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(content_types=['photo'])
@@ -300,13 +302,15 @@ if not tech_raboty:
 						break
 
 			if not done:
-				await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+				msg_del = await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+				asyncio.create_task(delete_message(msg_del, 10))
 		
 			if w == 64 and h == 64:
 				await listOfClients[id].init_mc_f(usr_img)
 				listOfClients[id].wait_to_file = 0
 				await listOfClients[id].prerender()
-
+				await listOfClients[id].import_msg.delete()
+				await message.delete()
 				skin_rer = await listOfClients[id].rerender()
 				bio = BytesIO()
 				bio.name = f'{id1}.png'
@@ -509,7 +513,7 @@ if not tech_raboty:
 			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
 			return
 		bio = BytesIO()
-		bio.name = f'{id1}.png'
+		bio.name = f'{hex(int(id1))[2:].upper()}.png'
 		listOfClients[id].skin_raw.save(bio, 'PNG')
 		bio.seek(0)
 		await message.message.answer_document(bio)
@@ -966,8 +970,12 @@ if not tech_raboty:
 			if listOfClients[id].wait_to_file == 2:
 				done = await listOfClients[id].init_mc_n(message.text)
 				if done == 1 or done == 3:
-					if done == 3: await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+					if done == 3: 
+						msg_del = await message.answer("У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!")
+						asyncio.create_task(delete_message(msg_del, 10))
 					listOfClients[id].wait_to_file = 0
+					await listOfClients[id].import_msg.delete()
+					await message.delete()
 
 					await listOfClients[id].prerender()
 

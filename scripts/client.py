@@ -54,7 +54,7 @@ def fill(img, colour):
         for x in range(w):
             r, g, b, t = rgb_im.getpixel((x, y))
             try: 
-                if t != 0: 
+                if t != 0 and r == g == b: 
                     rgb_im.putpixel((x, y), (round((r / 255) * r_c), round((g / 255) * g_c), round((b / 255) * b_c), t))
             except: pass
     return rgb_im
@@ -70,32 +70,21 @@ def clear(img, pos):
             except: pass
     return rgb_im
 
-def crop(image, abs, slim):
-    new_img = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
-    img = Image.open(image).convert("RGBA")
-    w, h = img.size
-    id = 1 if w == 5 else 0
-    
-    if abs > 1:
-        if not id:
-            if abs == 2 and slim:
-                img_less = img.crop((0, 0, 1, 5))
-                img_h = img.crop((1, 0, 6, 4))
-                new_img.paste(img_less, (13, 0), img_less)
-                new_img.paste(img_h, (0, 0), img_h)
-            else:
-                img_less = img.crop((0, 0, 1, 5))
-                
-                img_h = img.crop((1, 0, 6, 4))
-                new_img.paste(img_less, (15, 0), img_less)
-                new_img.paste(img_h, (0, 0), img_h)
+def crop(img, abs, slim):
 
-        else:
-            if abs == 2 and slim: new_img.paste(img, (1, 0), img)
-            else: new_img.paste(img, (2, 0), img)
-    else:
-        new_img.paste(img, (7 - 1 if id else 7, 0), img)
-    return new_img
+    image = Image.open(img).convert("RGBA")
+    if slim and abs == 0: image_o = image.crop((0, 0, 15, 5))
+    else: image_o = image.copy()
+
+    if abs > 1:
+        img_left = image_o.crop((0, 0, 8, 4))
+        img_right = image_o.crop((8, 0, 16, 4))
+        image_o = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
+        image_o.paste(img_right, (0, 0), img_right)
+        image_o.paste(img_left, (8 if not (slim and (abs == 0 or img == "res/pepes/pepe1.png")) else 6, 0), img_left)
+
+    return image_o
+    
 def to64(skin):
     new_img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     img = skin.copy()
@@ -160,7 +149,7 @@ class Client:
     def __init__(self, chat_id):
         self.chat_id = chat_id
         self.slim = None
-        self.slim_cust = None
+        self.slim_cust = 0
         self.mc_class = None
         self.skin_raw = None #img
         self.prewiew_id = 0
@@ -179,6 +168,7 @@ class Client:
 
         self.pos = 4
         self.colour = (-1, -1, -1)
+        self.pepeImage = -1
         self.first_layer = 1
         self.overlay = True
         self.bw = False
@@ -217,13 +207,17 @@ class Client:
         self.negative = False
         self.absolute_pos = 0
         self.delete_pix = True
+        self.pepe_type = 0
+
 
     async def init_mc_f(self, usr_img):
         self.mc_class = Player(name="abc", raw_skin=usr_img)  # create a Player object by UUID
         await self.mc_class.initialize()
         self.skin_raw = usr_img
         self.first_skin1 = usr_img.copy()
-        
+        w, h = self.skin_raw.size
+        if w != 64 or h != 64:
+            self.skin_raw = self.first_skin1 = to64(self.skin_raw.copy())
         
 
     async def init_mc_n(self, name):
@@ -246,6 +240,10 @@ class Client:
                         done = 3
                         break
             
+            if not bool(self.skin_raw.getpixel((46, 52))[3]) and not bool(self.skin_raw.getpixel((45, 52))[3]): done = 4
+
+                    
+            
         return done
         
     def exportJSON(self, chat):
@@ -257,10 +255,11 @@ class Client:
             "negative": self.negative, 
             "absolutePos": self.absolute_pos, 
             "layerDelete": self.delete_pix,
-            "pepeType": self.pepe_type
+            "pepeType": self.pepe_type,
+            "pepeImage": self.pepeImage
         }
 
-        json_object = json.dumps(params, indent=8)
+        json_object = json.dumps(params, indent=9)
  
         # Writing to sample.json
         with open(f"params{chat}.json", "w") as outfile:
@@ -279,6 +278,7 @@ class Client:
         self.absolute_pos = int(json_object["absolutePos"])
         self.delete_pix = json_object["layerDelete"]
         self.pepe_type = int(json_object["pepeType"])
+        self.pepeImage = int(json_object["pepeImage"])
         
 
     async def prerender(self):
@@ -294,22 +294,17 @@ class Client:
         self.average_col = average_colour(img.copy())
         
     async def rerender(self):
-        if self.slim_cust != None: self.slim = self.slim_cust
+
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
             if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
 
-            if self.absolute_pos > 1: 
-                if self.absolute_pos == 2 and self.slim: img = Image.open("res/header/custom_right_arm.png")
-                else: img = Image.open("res/header/custom_right.png")
-            else: img = Image.open("res/header/custom.png")
+
+
+            if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
+            else:img = crop(f"res/pepes/colored/{self.pepeImage}", self.absolute_pos, self.slim)
             
-            img = fill(img.copy(), self.colour)
-
-
-            img1 = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
-            img.paste(img1, (0, 0), img1)
-
+            if self.pepeImage == -1: img = fill(img.copy(), self.colour)
             
             sl = self.slim and (self.absolute_pos == 0)
             if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)
@@ -318,7 +313,8 @@ class Client:
             
             bond = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
             if self.first_layer == 1: 
-                img_lining = Image.open("res/lining/custom.png")
+                if self.pepeImage == -1: img_lining = Image.open("res/lining/custom.png")
+                else: img_lining = crop(f"res/lining/colored/{self.pepeImage}", self.absolute_pos, self.slim)
                 img_lining = fill(img_lining.copy(), self.colour)
                 self.skin_raw.paste(img_lining.crop((2, 0, 16, 4)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((2, 0, 16, 4)) if sl else img_lining)
                 bond.paste(img_lining, (0, 0), img_lining)
@@ -339,7 +335,6 @@ class Client:
         await self.mc_class.initialize()
 
 
-        if self.slim_cust != None: self.mc_class.skin.is_slim = self.slim_cust
         
         await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
                                              vr=-20, 
@@ -352,7 +347,8 @@ class Client:
                                              hrla=self.poses[4][self.pose],
                                              hrra=self.poses[5][self.pose],
                                              hrll=self.poses[6][self.pose],
-                                             hrrl=self.poses[7][self.pose]
+                                             hrrl=self.poses[7][self.pose],
+                                             man_slim=self.slim_cust
                                              )
         img = self.mc_class.skin.skin
         

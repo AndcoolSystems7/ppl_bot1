@@ -160,7 +160,7 @@ if not tech_raboty:
 		bio.name = f'{message.from_user.id}.png'
 		welcome_msg.save(bio, 'PNG')
 		bio.seek(0)
-		await message.answer_photo(photo=bio, caption="Привет! Давай начнём.\nОткуда брать скин?",
+		await message.answer_photo(photo=bio, caption="Привет👋! Давай начнём.\nОткуда брать скин?",
 												reply_markup=keyboard)
 		global listOfClients
 		if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
@@ -292,6 +292,7 @@ if not tech_raboty:
 					return
 
 			usr_img = Image.open(f'{id1}.png').convert("RGBA")
+			os.remove(f'{id1}.png')
 			w, h = usr_img.size
 			done = True
 			for y_ch in range(3):
@@ -311,6 +312,20 @@ if not tech_raboty:
 				await listOfClients[id].prerender()
 				await listOfClients[id].import_msg.delete()
 				await message.delete()
+
+				if not bool(usr_img.getpixel((46, 52))[3]) and not bool(usr_img.getpixel((45, 52))[3]): 
+					big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+						text='Стив', callback_data='man_steve')
+
+					big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+						text='Алекс', callback_data='man_alex')
+
+					# Создаем объект инлайн-клавиатуры
+					keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+						inline_keyboard=[[big_button_4], [big_button_5]])
+					msg = await message.answer("Извините, боту не удаль корректно определить тип вашего скина.\nПожалуйста, выберете правильный:", reply_markup=keyboard1)
+					listOfClients[id].info_id = msg
+					return
 				skin_rer = await listOfClients[id].rerender()
 				bio = BytesIO()
 				bio.name = f'{id1}.png'
@@ -319,7 +334,7 @@ if not tech_raboty:
 
 				msg = await message.answer_photo(bio, "Вот предварительный просмотр")
 				listOfClients[id].prewiew_id = msg
-				os.remove(f'{id1}.png')
+				
 
 				msg = await colorDialog(message, id)
 				listOfClients[id].info_id = msg
@@ -940,6 +955,63 @@ if not tech_raboty:
 		await render_and_edit(message.message, id, id1)
 		await start_set(message.message)
 	#---------------------------------------------------------------------------------------------------
+
+	@dp.callback_query_handler(text="man_steve")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		listOfClients[id].slim_cust = 1
+		await listOfClients[id].info_id.delete()
+		listOfClients[id].info_id = 0
+
+		await listOfClients[id].prerender()
+		listOfClients[id].slim = False
+		skin_rer = await listOfClients[id].rerender()
+		bio = BytesIO()
+		bio.name = f'{id1}.png'
+		skin_rer.save(bio, 'PNG')
+		bio.seek(0)
+
+		msg = await message.message.answer_photo(bio, "Вот предварительный просмотр")
+		listOfClients[id].prewiew_id = msg
+
+
+		msg = await colorDialog(message.message, id)
+		listOfClients[id].info_id = msg
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.callback_query_handler(text="man_alex")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		listOfClients[id].slim_cust = 2
+
+		await listOfClients[id].info_id.delete()
+		listOfClients[id].info_id = 0
+		await listOfClients[id].prerender()
+		listOfClients[id].slim = True
+		skin_rer = await listOfClients[id].rerender()
+		bio = BytesIO()
+		bio.name = f'{id1}.png'
+		skin_rer.save(bio, 'PNG')
+		bio.seek(0)
+
+		msg = await message.message.answer_photo(bio, "Вот предварительный просмотр")
+		listOfClients[id].prewiew_id = msg
+
+
+		msg = await colorDialog(message.message, id)
+		listOfClients[id].info_id = msg
+	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(content_types=['text'])
 	async def echo(message: types.Message):
 		global andcool_alert
@@ -992,7 +1064,20 @@ if not tech_raboty:
 					msg = await colorDialog(message, id)
 					listOfClients[id].info_id = msg
 
-				elif done == 2: await message.answer("Извините, скины до версии 1.8 не поддерживаются(")
+				elif done == 4: 
+					await listOfClients[id].import_msg.delete()
+					await message.delete()
+					big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+						text='Стив', callback_data='man_steve')
+
+					big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+						text='Алекс', callback_data='man_alex')
+
+					# Создаем объект инлайн-клавиатуры
+					keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+						inline_keyboard=[[big_button_4], [big_button_5]])
+					msg = await message.answer("Извините, боту не удаль корректно определить тип вашего скина.\nПожалуйста, выберете правильный:", reply_markup=keyboard1)
+					listOfClients[id].info_id = msg
 				
 
 				else:

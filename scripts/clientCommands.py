@@ -83,7 +83,7 @@ def init(bot, dp, on_server):
 			for x_p in range(len(donateList)):
 				if donateList[x_p][0] != 0:
 					count += 1
-			count = min(count, 10)
+			
 			emotes = ["🥇", "🥈", "🥉"]
 			for x in range(count):
 				emote = emotes[x] if x < 3 else ""

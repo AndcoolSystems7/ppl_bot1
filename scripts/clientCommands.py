@@ -61,7 +61,8 @@ def init(bot, dp, on_server):
 		text2 = "Для начала работы с ботом отправьте /start и следуйте дальнейшим инструкциям.\n\n"
 		text3 = f"При возникновении вопросов или ошибок обращайтесь в {link3}\nили *отправив команду* /support\n\n"
 		link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
-		link2 = link('сайт', 'http://pplbandagebot.ru')
+		link2 = link('сайт', 'https://pplbandagebot.ru')
+		link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
 
 		text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
 		if on_server:
@@ -70,7 +71,7 @@ def init(bot, dp, on_server):
 			text5 = f"Версия *{ver}*\n"
 			f.close()
 		else: text5 = ""
-		text4 = "*Created by AndcoolSystems*"
+		text4 = f"*Created by AndcoolSystems*\nПродакшн: {link4}"
 		donate_text = ""
 		if os.path.isfile("data/donations.npy"):
 			donate_text = "\n\nЛюди, поддержавшие проект:\n"

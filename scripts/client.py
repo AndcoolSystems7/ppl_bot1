@@ -326,8 +326,7 @@ class Client:
 
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)
-            r, g, b = self.average_col
-            average_col = 255 - r, 255 - g, 255 - b
+    
         
         else: average_col = self.average_col
 
@@ -338,7 +337,7 @@ class Client:
         
         await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
                                              vr=-20, 
-                                             ratio = 20, 
+                                             ratio = 32, 
                                              vrc = 15, 
                                              vrll=self.poses[0][self.pose], 
                                              vrrl=self.poses[1][self.pose],
@@ -350,20 +349,21 @@ class Client:
                                              hrrl=self.poses[7][self.pose],
                                              man_slim=self.slim_cust
                                              )
+        self.skin_raw.putpixel((0, 3), (255, 0, 0, 255))
+        self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))
+        self.skin_raw.putpixel((3, 0), (0, 0, 255, 255))
         img = self.mc_class.skin.skin
-        
         new_img = None
-        r, g, b = self.average_col
-        not_aver = 255 - r, 255 - g, 255 - b
+
         width, height = img.size
-        fnt = ImageFont.truetype("res/font.ttf", 15)
+        #fnt = ImageFont.truetype("res/font.ttf", 15)
         
-        new_img = Image.new('RGB', (height + 20, height + 20), average_col)
+        new_img = Image.new('RGB', (height + 20, height + 20), (255, 255, 255))
         new_img.paste(img, (round((height + 20) / 2) - round
                             (width / 2), 10), img)
         
-        d = ImageDraw.Draw(new_img)
-        d.text((5, height), "by AndcoolSystems", font=fnt, fill=not_aver)
+        #d = ImageDraw.Draw(new_img)
+        #d.text((5, height), "by AndcoolSystems", font=fnt, fill=(0, 0, 0))
         return new_img
     
     

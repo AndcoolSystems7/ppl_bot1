@@ -314,16 +314,16 @@ if not tech_raboty:
 				await message.delete()
 
 				if not bool(usr_img.getpixel((46, 52))[3]) and not bool(usr_img.getpixel((45, 52))[3]): 
+					keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 					big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 						text='Стив', callback_data='man_steve')
 
 					big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 						text='Алекс', callback_data='man_alex')
 
-					# Создаем объект инлайн-клавиатуры
-					keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
-						inline_keyboard=[[big_button_4], [big_button_5]])
-					msg = await message.answer("Извините, боту не удаль корректно определить тип вашего скина.\nПожалуйста, выберете правильный:", reply_markup=keyboard1)
+					keyboard1.row(big_button_4, big_button_5)
+
+					msg = await message.answer("Извините, боту не удалось корректно определить тип вашего скина.\nПожалуйста, выберете правильный:", reply_markup=keyboard1)
 					listOfClients[id].info_id = msg
 					return
 				skin_rer = await listOfClients[id].rerender()
@@ -402,11 +402,27 @@ if not tech_raboty:
 		listOfClients[id].colour = 5
 		listOfClients[id].wait_to_file = 3
 
+		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+		text='Отмена', callback_data='customDeny')
+
+					# Создаем объект инлайн-клавиатуры
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+				inline_keyboard=[[big_button_5]])
+		link4 = link('этом сайте', 'https://colorscheme.ru/color-converter.html')
 		msg = await message.message.answer(
-			"Теперь отправьте свой цвет в формате *HEX* или *RGB*\nЦвет можно получить на сайте https://colorscheme.ru/color-converter.html", parse_mode= 'Markdown'
+			f"Теперь отправьте свой цвет в формате *HEX* или *RGB*\nЦвет можно получить на {link4}\nБот принимает цвета в форматах:\n#ffffff\nffffff\n255,255,255\n255, 255, 255 и т.п.", parse_mode= 'Markdown', reply_markup=keyboard1
 		)
 		listOfClients[id].info_id = msg
-
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="customDeny")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, id1)
+		if id == -1: 
+			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			return
+		await colorDialog(message.message, id)
 	#---------------------------------------------------------------------------------------------------
 	async def acceptChoose(message):
 		global listOfClients
@@ -708,7 +724,6 @@ if not tech_raboty:
 		listOfClients[id].delete_mess = True
 		txt11 = "Алекс" if listOfClients[id].slim else "Стив"
 		txt1 = f"*Версия скина:* {txt11}\n"
-		txt2 = f"*Позиция повязки:* {listOfClients[id].pos}\n"
 		txt12 = "Вкл" if listOfClients[id].overlay else "Выкл"
 
 		txt13 = "Выкл"
@@ -732,7 +747,7 @@ if not tech_raboty:
 		try:
 				
 			msg = await listOfClients[id].info_id.edit_text(
-				f"*Параметры:*\n{txt1}{txt2}{txt3}{txt4}{txt5}{txt6}{txt7}{txt8}",
+				f"*Параметры:*\n{txt1}{txt3}{txt4}{txt5}{txt6}{txt7}{txt8}",
 				reply_markup=keyboard3, parse_mode='Markdown')
 
 		except:pass
@@ -1067,16 +1082,15 @@ if not tech_raboty:
 				elif done == 4: 
 					await listOfClients[id].import_msg.delete()
 					await message.delete()
+					keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 					big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 						text='Стив', callback_data='man_steve')
 
 					big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 						text='Алекс', callback_data='man_alex')
 
-					# Создаем объект инлайн-клавиатуры
-					keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
-						inline_keyboard=[[big_button_4], [big_button_5]])
-					msg = await message.answer("Извините, боту не удаль корректно определить тип вашего скина.\nПожалуйста, выберете правильный:", reply_markup=keyboard1)
+					keyboard1.row(big_button_4, big_button_5)
+					msg = await message.answer("Извините, боту не удалось корректно определить тип вашего скина.\nПожалуйста, выберете правильный:", reply_markup=keyboard1)
 					listOfClients[id].info_id = msg
 				
 

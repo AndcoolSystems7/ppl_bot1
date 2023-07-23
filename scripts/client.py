@@ -5,7 +5,6 @@ from os import listdir
 from os.path import isfile, join
 import json
 
-renderBackground = Image.open(f"res/presets/background.png")
 
 def transparent_negative(img):
     rgb_im = img.convert('RGBA')
@@ -359,11 +358,9 @@ class Client:
         img = self.mc_class.skin.skin
         width, height = img.size
         
-        global renderBackground
-
-        renderBack = renderBackground.copy()
-        bW, bH = renderBack.size
-        renderBack.paste(img, (round((bW / 2) - (width / 2)), round((bH / 2) - (height / 2))), img)
+        renderBack = Image.new(mode="RGBA", size=(height + 40, height + 40), color=(255, 255, 255, 255))
+        
+        renderBack.paste(img, (round((height + 40) / 2 - (width / 2)), 20), img)
         
         return renderBack
     

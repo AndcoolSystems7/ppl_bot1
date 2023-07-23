@@ -54,18 +54,22 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
     await asyncio.sleep(sleep_time)
     with suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
         await message.delete()
+def constrain(val, min_val, max_val):
+    return min(max_val, max(min_val, val))
 
 if not tech_raboty:
 	listOfClients = []
 	welcome_msg = Image.open(f"res/presets/start.png")
 
 	clientCommands.init(bot, dp, on_server)
-
+	andcool_id = 1197005557
 
 	#---------------------------------------------------------------------------------------------------
 
+
 	@dp.message_handler(commands=['reviews'])
 	async def send_welcome(message: types.Message):
+		global andcool_id
 		if os.path.isfile("data/reviews.npy"):
 			reviewsListNp = np.load("data/reviews.npy")
 			reviewsList = reviewsListNp.tolist()
@@ -85,21 +89,26 @@ if not tech_raboty:
 
 			id1 = message.chat.id
 			id = client.find_client(listOfClients, message.chat.id)
-
-			if len(reviewsList) <= 3:
+			messages_on_page = 4
+			
+			if len(reviewsList) <= messages_on_page:
 				reviewTxt = []
+				counter = 0
 				for x in reviewsList:
-					reviewTxt.append(f"{x}\n\n")
+					msg_id = f"({len(reviewsList) - counter})" if andcool_id == message.from_user.id else ""
+					reviewTxt.append(f"{x} {msg_id}\n\n")
+					counter += 1
 				rew = "".join(reviewTxt)
-				await message.answer(text=f"{rew}", parse_mode="Markdown")
+				await message.answer(text=f"Отзывы:\n{rew}*Страница 1-1*\nОставить отзыв можно отправив команду /review", parse_mode="Markdown")
 			else:
 				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 				big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 					text='←', callback_data='leftRev')
 				big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 					text='→', callback_data='rightRev')
-				pages_count = math.ceil(len(reviewsList) / 3) - 1
-
+				
+				pages_count = math.ceil(len(reviewsList) / messages_on_page) - 1
+				listOfClients[id].ReviewsPage = constrain(listOfClients[id].ReviewsPage, 0, pages_count)
 				if listOfClients[id].ReviewsPage > 0: 
 					if listOfClients[id].ReviewsPage < pages_count:
 						keyboard1.row(big_button_4, big_button_5)
@@ -109,12 +118,15 @@ if not tech_raboty:
 					keyboard1.row(big_button_5)
 				
 				reviewTxt = []
-				for x in range(3):
+				for x in range(messages_on_page):
 					try:
-						reviewTxt.append(f"{reviewsList[x + (3 * listOfClients[id].ReviewsPage)]}\n\n")
+						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.from_user.id else ""
+						reviewTxt.append(f"{reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)]} {msg_id}\n\n")
 					except: pass
 				rew = "".join(reviewTxt)
-				listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*", parse_mode="Markdown", reply_markup=keyboard1)
+				try:
+					listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review", parse_mode="Markdown", reply_markup=keyboard1)
+				except: pass
 				
 
 		else: await message.answer(text="Отзывов пока не было(")
@@ -130,14 +142,20 @@ if not tech_raboty:
 		if id == -1: 
 			await sessionPizda(message.message)
 			return
-		listOfClients[id].ReviewsPage += 1 if message.data == "rightRev" else -1
+		messages_on_page = 4
+		pages_count = math.ceil(len(reviewsList) / messages_on_page) - 1
+		if message.data == "rightRev":
+			if listOfClients[id].ReviewsPage < pages_count: listOfClients[id].ReviewsPage += 1
+		else:
+			if listOfClients[id].ReviewsPage > 0: listOfClients[id].ReviewsPage -= 1
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 			text='←', callback_data='leftRev')
 		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 			text='→', callback_data='rightRev')
-		pages_count = math.ceil(len(reviewsList) / 3) - 1
+		
 
+		listOfClients[id].ReviewsPage = constrain(listOfClients[id].ReviewsPage, 0, pages_count)
 		if listOfClients[id].ReviewsPage > 0: 
 			if listOfClients[id].ReviewsPage < pages_count:
 				keyboard1.row(big_button_4, big_button_5)
@@ -146,12 +164,15 @@ if not tech_raboty:
 		elif listOfClients[id].ReviewsPage == 0: 
 			keyboard1.row(big_button_5)
 		reviewTxt = []
-		for x in range(3):
+		for x in range(messages_on_page):
 			try:
-				reviewTxt.append(f"{reviewsList[x + (3 * listOfClients[id].ReviewsPage)]}\n\n")
+				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.from_user.id else ""
+				reviewTxt.append(f"{reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)]} {msg_id}\n\n")
 			except: pass
 		rew = "".join(reviewTxt)
-		await listOfClients[id].ReviewsMsg.edit_text(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*", reply_markup=keyboard1, parse_mode="Markdown")
+		try:
+			await listOfClients[id].ReviewsMsg.edit_text(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review", reply_markup=keyboard1, parse_mode="Markdown")
+		except:pass
 	#---------------------------------------------------------------------------------------------------
 	
 	@dp.message_handler(commands=['review'])
@@ -168,16 +189,24 @@ if not tech_raboty:
 			if not finded: listOfClients.append(client.Client(message.chat.id))
 
 		id1 = message.chat.id
+		banned = False
+		if os.path.isfile("data/banned.npy"):
+			reviewsListNp = np.load("data/banned.npy")
+			reviewsList = reviewsListNp.tolist()
+			if reviewsList == []: pass
+			else: 
+				if message.from_user.id in reviewsList: banned = True
+		if not banned:
+			id = client.find_client(listOfClients, message.chat.id)
+			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+			big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+				text='Отмена', callback_data='reviewDeny')
 
-		id = client.find_client(listOfClients, message.chat.id)
-		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
-		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-			text='Отмена', callback_data='reviewDeny')
 
-
-		keyboard1.row(big_button_4)
-		listOfClients[id].waitToReview = True
-		await message.answer(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.", parse_mode="Markdown", reply_markup=keyboard1)
+			keyboard1.row(big_button_4)
+			listOfClients[id].waitToReview = True
+			await message.answer(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.\n*Пожалуйста*, будьте вежливыми и не употребляйте грубые слова и выражения!", parse_mode="Markdown", reply_markup=keyboard1)
+		else: await message.answer(text="Вы забанены в отзывах, напишите в /support и модераторы рассмотрят ваш запрос")
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="reviewDeny")
@@ -1136,14 +1165,14 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
-			await sessionPizda(message)
+			if message.chat.id != -1001980044675: await sessionPizda(message)
 			return
 		id1 = message.chat.id
 
 		
 
 		if listOfClients[id].waitToReview:
-			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* оставил отзыв:\n{message.text}", parse_mode="Markdown")
+			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* оставил отзыв:\n{message.text}\nЕго id: {message.from_user.id}", parse_mode="Markdown")
 			listOfClients[id].waitToReview = False
 			await message.answer("Спасибо за отзыв!\nПосмотреть список всех отзывов можно отправив /reviews")
 			now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
@@ -1160,7 +1189,8 @@ if not tech_raboty:
 				reviewsListNp = np.load("data/reviews.npy")
 				reviewsList = reviewsListNp.tolist()
 			first = str(message.from_user.first_name) if message.from_user.first_name != None else ""
-			last = str(message.from_user.last_name) + " "  if message.from_user.last_name != None and first != "" else ""
+			kast_a = " " if first != "" else ""
+			last = (kast_a + str(message.from_user.last_name)) if message.from_user.last_name != None else ""
 			reviewsList.insert(0, f"*{first}{last} {now_time_format}:*\n{message.text}")
 
 			np.save(arr=np.array(reviewsList), file="data/reviews.npy")

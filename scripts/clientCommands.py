@@ -62,7 +62,7 @@ def init(bot, dp, on_server):
 		text3 = f"При возникновении вопросов или ошибок обращайтесь в {link3}\nили *отправив команду* /support\n\n"
 		link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
 		link2 = link('сайт', 'https://pplbandagebot.ru')
-		link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
+		#link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
 
 		text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
 		if on_server:
@@ -71,7 +71,7 @@ def init(bot, dp, on_server):
 			text5 = f"Версия *{ver}*\n"
 			f.close()
 		else: text5 = ""
-		text4 = f"*Created by AndcoolSystems*\nПродакшн: {link4}"
+		text4 = f"*Created by AndcoolSystems*" #Продакшн: {link4}
 		donate_text = ""
 		if os.path.isfile("data/donations.npy"):
 			donate_text = "\n\nЛюди, поддержавшие проект:\n"
@@ -138,3 +138,64 @@ def init(bot, dp, on_server):
 		await message.answer(text, reply_markup=keyboard)
 
 	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['deleteReview'])
+	async def send_welcome(message: types.Message):
+		
+		if os.path.isfile("data/reviews.npy"):
+			reviewsListNp = np.load("data/reviews.npy")
+			reviewsList = reviewsListNp.tolist()
+			if reviewsList == []: 
+				await message.answer(text="Отзывов пока не было(")
+				return
+			id1 = message.chat.id
+			andcool_id = -1001980044675
+			if andcool_id == message.chat.id:
+				msg_id = message.text.split(" ")[1]
+				try:
+					if int(len(reviewsList) - int(msg_id)) >= 0:
+						reviewsList.pop(int(len(reviewsList) - int(msg_id)))
+						np.save(arr=np.array(reviewsList), file="data/reviews.npy")
+						await message.answer(text="Сообщение удалено!")
+					else: await message.answer(text="Ошибка! Проверьте номер сообщения")
+				except: await message.answer(text="Ошибка! Проверьте номер сообщения")
+
+		else: pass
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['ban'])
+	async def send_welcome(message: types.Message):
+		if not os.path.isfile("data/banned.npy"):
+			np.save(arr=np.array([]), file="data/banned.npy")
+			reviewsList = []
+		else: 
+			reviewsListNp = np.load("data/banned.npy")
+			reviewsList = reviewsListNp.tolist()
+		id = int(message.text.split(" ")[1])
+		andcool_id = -1001980044675
+		if andcool_id == message.chat.id:
+			if not id in reviewsList: 
+				reviewsList.append(id)
+				np.save(arr=np.array(reviewsList), file="data/banned.npy")
+				await message.answer(text="Забанен!")
+			else: await message.answer(text="Человек уже забанен!")
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['unban'])
+	async def send_welcome(message: types.Message):
+		if not os.path.isfile("data/banned.npy"):
+			np.save(arr=np.array([]), file="data/banned.npy")
+			reviewsList = []
+		else: 
+			reviewsListNp = np.load("data/banned.npy")
+			reviewsList = reviewsListNp.tolist()
+		id = int(message.text.split(" ")[1])
+		andcool_id = -1001980044675
+		if andcool_id == message.chat.id:
+			if id in reviewsList: 
+				reviewsList.remove(id)
+				np.save(arr=np.array(reviewsList), file="data/banned.npy")
+				await message.answer(text="Разбанен!")
+			else: await message.answer(text="Человек не забанен")
+		

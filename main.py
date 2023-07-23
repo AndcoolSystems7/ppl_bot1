@@ -62,7 +62,7 @@ if not tech_raboty:
 	welcome_msg = Image.open(f"res/presets/start.png")
 
 	clientCommands.init(bot, dp, on_server)
-	andcool_id = 1197005557
+	andcool_id = -1001980044675
 
 	#---------------------------------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ if not tech_raboty:
 				reviewTxt = []
 				counter = 0
 				for x in reviewsList:
-					msg_id = f"({len(reviewsList) - counter})" if andcool_id == message.from_user.id else ""
+					msg_id = f"({len(reviewsList) - counter})" if andcool_id == message.chat.id else ""
 					reviewTxt.append(f"{x} {msg_id}\n\n")
 					counter += 1
 				rew = "".join(reviewTxt)
@@ -120,7 +120,7 @@ if not tech_raboty:
 				reviewTxt = []
 				for x in range(messages_on_page):
 					try:
-						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.from_user.id else ""
+						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.chat.id else ""
 						reviewTxt.append(f"{reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)]} {msg_id}\n\n")
 					except: pass
 				rew = "".join(reviewTxt)
@@ -166,13 +166,13 @@ if not tech_raboty:
 		reviewTxt = []
 		for x in range(messages_on_page):
 			try:
-				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.from_user.id else ""
+				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.message.chat.id else ""
 				reviewTxt.append(f"{reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)]} {msg_id}\n\n")
 			except: pass
 		rew = "".join(reviewTxt)
 		try:
 			await listOfClients[id].ReviewsMsg.edit_text(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review", reply_markup=keyboard1, parse_mode="Markdown")
-		except:pass
+		except: pass
 	#---------------------------------------------------------------------------------------------------
 	
 	@dp.message_handler(commands=['review'])

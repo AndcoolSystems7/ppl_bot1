@@ -46,7 +46,6 @@ def init(bot1, dp1):
     bot = bot1
     dp = dp1
 
-print(donateList)
 
 da_event = -1
 

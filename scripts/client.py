@@ -5,6 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import json
 
+renderBackground = Image.open(f"res/presets/background.png")
 
 def transparent_negative(img):
     rgb_im = img.convert('RGBA')
@@ -73,7 +74,7 @@ def clear(img, pos):
 def crop(img, abs, slim):
 
     image = Image.open(img).convert("RGBA")
-    if slim and abs == 0: image_o = image.crop((0, 0, 15, 5))
+    if slim and (abs == 0 or abs == 2): image_o = image.crop((0, 0, 15, 5))
     else: image_o = image.copy()
 
     if abs > 1:
@@ -81,7 +82,7 @@ def crop(img, abs, slim):
         img_right = image_o.crop((8, 0, 16, 4))
         image_o = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
         image_o.paste(img_right, (0, 0), img_right)
-        image_o.paste(img_left, (8 if not (slim and (abs == 0 or img == "res/pepes/pepe1.png")) else 6, 0), img_left)
+        image_o.paste(img_left, (8 if not (slim and (abs == 0 or img == "res/pepes/pepe1.png" or abs == 2)) else 6, 0), img_left)
 
     return image_o
     
@@ -165,6 +166,9 @@ class Client:
         self.wait_to_support = False
         self.wait_to_file = 0
         self.import_msg = -1
+        self.waitToReview = False
+        self.ReviewsMsg = None
+        self.ReviewsPage = 0
 
         self.pos = 4
         self.colour = (-1, -1, -1)
@@ -261,7 +265,6 @@ class Client:
 
         json_object = json.dumps(params, indent=9)
  
-        # Writing to sample.json
         with open(f"params{chat}.json", "w") as outfile:
             outfile.write(json_object)
 
@@ -302,7 +305,7 @@ class Client:
 
 
             if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
-            else:img = crop(f"res/pepes/colored/{self.pepeImage}", self.absolute_pos, self.slim)
+            else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim)
             
             if self.pepeImage == -1: img = fill(img.copy(), self.colour)
             
@@ -313,10 +316,12 @@ class Client:
             
             bond = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
             if self.first_layer == 1: 
-                if self.pepeImage == -1: img_lining = Image.open("res/lining/custom.png")
-                else: img_lining = crop(f"res/lining/colored/{self.pepeImage}", self.absolute_pos, self.slim)
-                img_lining = fill(img_lining.copy(), self.colour)
-                self.skin_raw.paste(img_lining.crop((2, 0, 16, 4)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((2, 0, 16, 4)) if sl else img_lining)
+                if self.pepeImage == -1: 
+                    img_lining = Image.open("res/lining/custom.png")
+                    img_lining = fill(img_lining.copy(), self.colour)
+                else: img_lining = crop(f"res/lining/colored/{self.pepeImage}.png", self.absolute_pos, self.slim)
+                
+                self.skin_raw.paste(img_lining.crop((2 if self.pepeImage == -1 else 1, 0, 16, 4)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((2 if self.pepeImage == -1 else 1, 0, 16, 4)) if sl else img_lining)
                 bond.paste(img_lining, (0, 0), img_lining)
             bond.paste(img, (0, 0), img)
             self.bandage = bond
@@ -327,8 +332,6 @@ class Client:
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)
     
-        
-        else: average_col = self.average_col
 
         self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
         await self.mc_class.initialize()
@@ -352,19 +355,17 @@ class Client:
         self.skin_raw.putpixel((0, 3), (255, 0, 0, 255))
         self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))
         self.skin_raw.putpixel((3, 0), (0, 0, 255, 255))
-        img = self.mc_class.skin.skin
-        new_img = None
 
+        img = self.mc_class.skin.skin
         width, height = img.size
-        #fnt = ImageFont.truetype("res/font.ttf", 15)
         
-        new_img = Image.new('RGB', (height + 20, height + 20), (255, 255, 255))
-        new_img.paste(img, (round((height + 20) / 2) - round
-                            (width / 2), 10), img)
+        global renderBackground
+
+        renderBack = renderBackground.copy()
+        bW, bH = renderBack.size
+        renderBack.paste(img, (round((bW / 2) - (width / 2)), round((bH / 2) - (height / 2))), img)
         
-        #d = ImageDraw.Draw(new_img)
-        #d.text((5, height), "by AndcoolSystems", font=fnt, fill=(0, 0, 0))
-        return new_img
+        return renderBack
     
     
     

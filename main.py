@@ -37,6 +37,7 @@ from aiogram.utils.exceptions import (MessageCantBeDeleted,
                                       MessageToDeleteNotFound)
 from contextlib import suppress
 import scripts.clientCommands as clientCommands
+import math
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -48,28 +49,147 @@ logger.setLevel(logging.WARNING)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 da.init(bot, dp)
+async def sessionPizda(msg): await msg.answer("Упс. Ваша сессия была завершена\nПожалуйста, отправьте /start для начала работы")
 async def delete_message(message: types.Message, sleep_time: int = 0):
     await asyncio.sleep(sleep_time)
     with suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
         await message.delete()
+
 if not tech_raboty:
 	listOfClients = []
-	andcool_alert = False
-	if not os.path.exists("data/Alert_not.npy"):
-		not_alert = np.array([])
-		np.save("data/Alert_not.npy", not_alert)
-	else:
-		not_alert = np.load("data/Alert_not.npy")
+	welcome_msg = Image.open(f"res/presets/start.png")
 
 	clientCommands.init(bot, dp, on_server)
 
+
 	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['sendAlert'])
+
+	@dp.message_handler(commands=['reviews'])
 	async def send_welcome(message: types.Message):
-		global andcool_alert
-		if message.from_user.id == 1197005557:
-			await message.answer(text="Хорошо, AndcoolSystems, теперь отправь мне сообщение, которое я должен переслать другим")
-			andcool_alert = True
+		if os.path.isfile("data/reviews.npy"):
+			reviewsListNp = np.load("data/reviews.npy")
+			reviewsList = reviewsListNp.tolist()
+			if reviewsList == []: 
+				await message.answer(text="Отзывов пока не было(")
+				return
+			global listOfClients
+			if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
+			else:
+				finded = False
+				for add in range(len(listOfClients)):
+					if listOfClients[add].chat_id == message.chat.id:
+						finded == True
+						listOfClients[add] = client.Client(message.chat.id)
+						break
+				if not finded: listOfClients.append(client.Client(message.chat.id))
+
+			id1 = message.chat.id
+			id = client.find_client(listOfClients, message.chat.id)
+
+			if len(reviewsList) <= 3:
+				reviewTxt = []
+				for x in reviewsList:
+					reviewTxt.append(f"{x}\n\n")
+				rew = "".join(reviewTxt)
+				await message.answer(text=f"{rew}", parse_mode="Markdown")
+			else:
+				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+				big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+					text='←', callback_data='leftRev')
+				big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+					text='→', callback_data='rightRev')
+				pages_count = math.ceil(len(reviewsList) / 3) - 1
+
+				if listOfClients[id].ReviewsPage > 0: 
+					if listOfClients[id].ReviewsPage < pages_count:
+						keyboard1.row(big_button_4, big_button_5)
+					elif listOfClients[id].ReviewsPage == pages_count: 
+						keyboard1.row(big_button_4)
+				elif listOfClients[id].ReviewsPage == 0: 
+					keyboard1.row(big_button_5)
+				
+				reviewTxt = []
+				for x in range(3):
+					try:
+						reviewTxt.append(f"{reviewsList[x + (3 * listOfClients[id].ReviewsPage)]}\n\n")
+					except: pass
+				rew = "".join(reviewTxt)
+				listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*", parse_mode="Markdown", reply_markup=keyboard1)
+				
+
+		else: await message.answer(text="Отзывов пока не было(")
+
+
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text=["rightRev", "leftRev"])
+	async def from_f(message: CallbackQuery):
+		global listOfClients
+		reviewsListNp = np.load("data/reviews.npy")
+		reviewsList = reviewsListNp.tolist()
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+		listOfClients[id].ReviewsPage += 1 if message.data == "rightRev" else -1
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='←', callback_data='leftRev')
+		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+			text='→', callback_data='rightRev')
+		pages_count = math.ceil(len(reviewsList) / 3) - 1
+
+		if listOfClients[id].ReviewsPage > 0: 
+			if listOfClients[id].ReviewsPage < pages_count:
+				keyboard1.row(big_button_4, big_button_5)
+			elif listOfClients[id].ReviewsPage == pages_count: 
+				keyboard1.row(big_button_4)
+		elif listOfClients[id].ReviewsPage == 0: 
+			keyboard1.row(big_button_5)
+		reviewTxt = []
+		for x in range(3):
+			try:
+				reviewTxt.append(f"{reviewsList[x + (3 * listOfClients[id].ReviewsPage)]}\n\n")
+			except: pass
+		rew = "".join(reviewTxt)
+		await listOfClients[id].ReviewsMsg.edit_text(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*", reply_markup=keyboard1, parse_mode="Markdown")
+	#---------------------------------------------------------------------------------------------------
+	
+	@dp.message_handler(commands=['review'])
+	async def send_welcome(message: types.Message):
+		global listOfClients
+		if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
+		else:
+			finded = False
+			for add in range(len(listOfClients)):
+				if listOfClients[add].chat_id == message.chat.id:
+					finded == True
+					listOfClients[add] = client.Client(message.chat.id)
+					break
+			if not finded: listOfClients.append(client.Client(message.chat.id))
+
+		id1 = message.chat.id
+
+		id = client.find_client(listOfClients, message.chat.id)
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='Отмена', callback_data='reviewDeny')
+
+
+		keyboard1.row(big_button_4)
+		listOfClients[id].waitToReview = True
+		await message.answer(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.", parse_mode="Markdown", reply_markup=keyboard1)
+
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="reviewDeny")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+		listOfClients[id].waitToReview = False
+		await message.message.delete()
 	#---------------------------------------------------------------------------------------------------
 
 	@dp.message_handler(commands=['support'])
@@ -91,28 +211,7 @@ if not tech_raboty:
 
 		listOfClients[id].wait_to_support = True
 		await message.answer(text="Окей, теперь отправь *одно* сообщение (можно фото с подписью), где описываете вашу проблему или вопрос.", parse_mode="Markdown")
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['startalerts'])
-	async def send_welcome(message: types.Message):
-		global not_alert
-		if not message.from_user.id in not_alert: 
-			not_alert = np.append(not_alert, message.from_user.id)
-			await message.answer(text="Окей, теперь оповещения будут приходить вам)\nВы всегда можете их отключить отправив /stopalerts")
-			np.save("data/Alert_not.npy", not_alert)
-		else: await message.answer(text="Оповещения уже включены\nВы всегда можете их отключить отправив /stopalerts")
-	#---------------------------------------------------------------------------------------------------
-	@dp.message_handler(commands=['stopalerts'])
-	async def send_welcome(message: types.Message):
-		global not_alert
-		counter = 0
-		if not_alert.size > 0:
-			for x in not_alert:
-				
-				if x == message.from_user.id:
-					not_alert = np.delete(not_alert, counter)
-					await message.answer(text="Окей, теперь оповещения не будут приходить вам)\nВы всегда можете включить их обратно отправив /startalerts")
-				counter+=1
-			np.save("data/Alert_not.npy", not_alert)
+
 	
 
 	#---------------------------------------------------------------------------------------------------
@@ -133,9 +232,7 @@ if not tech_raboty:
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['start'])
 	async def send_welcome(message: types.Message):
-		global andcool_alert
-		if message.from_user.id == 1197005557:
-			andcool_alert = False
+
 		now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
 
 		now_time_format = "{}.{}.{}-{}:{}".format(now_time_log.day,
@@ -153,9 +250,7 @@ if not tech_raboty:
 		# Создаем объект инлайн-клавиатуры
 		keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
 		keyboard.row(big_button_2, big_button_1)
-		tt = "start_secret" if random.randint(0, 100) == 50 else "start"
-		if tt == "start_secret": logging.info(f"{message.from_user.username} got a secret start image!")
-		welcome_msg = Image.open(f"res/presets/{tt}.png")
+		global welcome_msg
 		bio = BytesIO()
 		bio.name = f'{message.from_user.id}.png'
 		welcome_msg.save(bio, 'PNG')
@@ -208,7 +303,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		msg = await message.message.answer(
 			'Хорошо, теперь отправь мне свой скин.\nОбязательно при отправке убери галочку "Сжать изображение"'
@@ -223,7 +318,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		msg = await message.message.answer("Хорошо, теперь отправь мне свой никнейм.")
 		await message.message.delete()
@@ -235,39 +330,23 @@ if not tech_raboty:
 	@dp.message_handler(content_types=['photo'])
 	async def handle_docs_photo(message: types.Message):
 		global listOfClients
-		global andcool_alert
 		
-		if andcool_alert == True and message.from_user.id == 1197005557:
-			await message.photo[-1].download(destination_file=f'alert.png')
 
-			photo = open(f'alert.png', 'rb')
-			global not_alert
-			for x in not_alert:
-				if x != "\n" and x != "":
-					try:
-						photo = open(f'alert.png', 'rb')
-						await bot.send_photo(chat_id=int(x), caption=f"{message.caption}\n\nВы всегда можете отключить оповещения отправив команду /stopalerts", photo=photo)
-					except: pass
-
-			photo.close()
-			os.remove('alert.png')
-			andcool_alert = False
-		else:
-			id = client.find_client(listOfClients, message.chat.id)
-			if id == -1: 
-				await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
-				return
+		id = client.find_client(listOfClients, message.chat.id)
+		if id == -1: 
+			await sessionPizda(message)
+			return
 			
-			if listOfClients[id].wait_to_support:
-				await message.photo[-1].download(destination_file=f'file.png')
-				photo = open(f'file.png', 'rb')
-				await bot.send_photo(chat_id=-1001980044675, caption=f"{message.caption}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}", photo=photo)
-				photo.close()
-				os.remove('file.png')
-				listOfClients[id].wait_to_support = False
+		if listOfClients[id].wait_to_support:
+			await message.photo[-1].download(destination_file=f'file.png')
+			photo = open(f'file.png', 'rb')
+			await bot.send_photo(chat_id=-1001980044675, caption=f"{message.caption}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}", photo=photo)
+			photo.close()
+			os.remove('file.png')
+			listOfClients[id].wait_to_support = False
 
-			elif listOfClients[id].wait_to_file == 1:
-				await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
+		elif listOfClients[id].wait_to_file == 1:
+			await message.reply('Пожалуйста, отправьте мне развёртку скина как файл или при отпраке снимите галочку "Сжать изображение"')
 
 
 
@@ -278,7 +357,7 @@ if not tech_raboty:
 		id = client.find_client(listOfClients, message.chat.id)
 		id1 = message.chat.id
 		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message)
 			return
 
 		if listOfClients[id].wait_to_file == 1:
@@ -367,11 +446,31 @@ if not tech_raboty:
 		global colour_txt
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 
 		colours = [(61, 58, 201), (250, 213, 30), (85, 163, 64), (176, 30, 30), (252, 15, 192), (105, 0, 198), (255, 102, 0), (0, 0, 0), (255, 255, 255)]
 		listOfClients[id].colour = colours[colour_txt.index(message.data)]
+
+		await render_and_edit(message.message, id, id1)
+		await acceptChoose(message.message)
+
+
+	colour_txt_cu = ["golden"]
+	@dp.callback_query_handler(text=colour_txt_cu)
+	async def from_f(message: CallbackQuery):
+
+		id1 = message.message.chat.id
+		global listOfClients
+		global colour_txt
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+
+		colours = [0]
+		listOfClients[id].pepeImage = colours[colour_txt_cu.index(message.data)]
+		listOfClients[id].colour = (0, 0, 0)
 
 		await render_and_edit(message.message, id, id1)
 		await acceptChoose(message.message)
@@ -384,7 +483,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, id1)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await start_set(message.message)
 
@@ -396,7 +495,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, id1)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await listOfClients[id].info_id.delete()
 		listOfClients[id].colour = 5
@@ -420,7 +519,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, id1)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await colorDialog(message.message, id)
 	#---------------------------------------------------------------------------------------------------
@@ -428,7 +527,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message)
 			return
 		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 				text='Готово ✓', callback_data='done_d')
@@ -446,7 +545,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message)
 			return
 		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 				text='Да ✓', callback_data='resetAccept')
@@ -464,7 +563,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await start_set(message.message)
 
@@ -476,7 +575,7 @@ if not tech_raboty:
 		id = client.find_client(listOfClients, message.message.chat.id)
 		id1 = message.message.chat.id
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 
 		listOfClients[id].pos = 4
@@ -498,7 +597,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		msg = await colorDialog(message.message, id)
 		
@@ -509,7 +608,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await start_set(message.message)
 	#---------------------------------------------------------------------------------------------------
@@ -518,7 +617,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message)
 			return
 		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 				text='Да ✓', callback_data='donetAccept')
@@ -541,7 +640,7 @@ if not tech_raboty:
 		id1 = message.message.chat.id
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		bio = BytesIO()
 		bio.name = f'{hex(int(id1))[2:].upper()}.png'
@@ -550,6 +649,7 @@ if not tech_raboty:
 		await message.message.answer_document(bio)
 		await listOfClients[id].info_id.delete()
 		listOfClients.pop(id)
+		await message.message.answer("Вы можете оставить отзыв, отправив команду /review")
 
 	@dp.callback_query_handler(text="doneDeny")
 	async def from_f(message: CallbackQuery):
@@ -557,7 +657,7 @@ if not tech_raboty:
 		id1 = message.message.chat.id
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await start_set(message.message)
 
@@ -568,7 +668,7 @@ if not tech_raboty:
 		id1 = message.message.chat.id
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 
 		listOfClients[id].first_skin1 = listOfClients[id].skin_raw
@@ -582,6 +682,8 @@ if not tech_raboty:
 		
 		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
 			text='Синий', callback_data='blue')
+		goldenBtn: InlineKeyboardButton = InlineKeyboardButton(
+			text='Повязка Пугода', callback_data='golden')
 
 		big_button_2: InlineKeyboardButton = InlineKeyboardButton(
 			text='Красный', callback_data='red')
@@ -611,6 +713,7 @@ if not tech_raboty:
 				# Создаем объект инлайн-клавиатуры
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
+		keyboard1.row(goldenBtn)
 		keyboard1.row(big_button_1, big_button_2, big_button_3)
 		keyboard1.row(big_button_4, pink_btn, violet_btn)
 		keyboard1.row(orange_btn, white_btn, black_btn)
@@ -631,7 +734,7 @@ if not tech_raboty:
 		id1 = message.message.chat.id
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		await done_accept(message.message)
 
@@ -642,7 +745,7 @@ if not tech_raboty:
 		id1 = message.message.chat.id
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		
 		bio = BytesIO()
@@ -657,7 +760,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message)
 			return
 
 		up_btn: InlineKeyboardButton = InlineKeyboardButton(text='↑',																			
@@ -761,7 +864,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].exportJSON(id1)
 		await message.message.answer_document(open(f"params{id1}.json", 'rb'))
@@ -773,7 +876,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].wait_to_file = 4
 		deny_import: InlineKeyboardButton = InlineKeyboardButton(
@@ -791,7 +894,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].wait_to_file = 0
 		await start_set(message.message)
@@ -804,7 +907,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 
 		await reset_accept(message.message)
@@ -817,7 +920,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		if listOfClients[id].pos > 0:
 			listOfClients[id].pos -= 1
@@ -833,7 +936,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].delete_pix = not listOfClients[id].delete_pix
 
@@ -851,7 +954,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].pose += 1
 
@@ -868,7 +971,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].bw = not listOfClients[id].bw
 
@@ -884,7 +987,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].negative = not listOfClients[id].negative
 
@@ -900,7 +1003,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		if listOfClients[id].pos < 8:
 			listOfClients[id].pos += 1
@@ -915,7 +1018,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].first_layer += 1
 
@@ -931,7 +1034,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].overlay = not listOfClients[id].overlay
 
@@ -946,7 +1049,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].absolute_pos += 1
 
@@ -961,7 +1064,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].pepe_type += 1
 
@@ -977,7 +1080,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].slim_cust = 1
 		await listOfClients[id].info_id.delete()
@@ -1006,7 +1109,7 @@ if not tech_raboty:
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
-			await message.message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message.message)
 			return
 		listOfClients[id].slim_cust = 2
 
@@ -1029,23 +1132,38 @@ if not tech_raboty:
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(content_types=['text'])
 	async def echo(message: types.Message):
-		global andcool_alert
+
 		global listOfClients
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
-			await message.answer("Ваша сессия была завершена\nОтпраьте /start для начала работы")
+			await sessionPizda(message)
 			return
 		id1 = message.chat.id
 
-		if andcool_alert == True and message.from_user.id == 1197005557:
-			global not_alert
+		
 
-			for x in not_alert:
-				if x != "\n" and x != "":
-					try:
-						await bot.send_message(int(x), f"{message.text}\n\nВы всегда можете отключить оповещения отправив команду /stopalerts")
-					except: pass
-			andcool_alert = False
+		if listOfClients[id].waitToReview:
+			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* оставил отзыв:\n{message.text}", parse_mode="Markdown")
+			listOfClients[id].waitToReview = False
+			await message.answer("Спасибо за отзыв!\nПосмотреть список всех отзывов можно отправив /reviews")
+			now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
+
+			now_time_format = "{}.{}.{}-{}:{}".format(now_time_log.day,
+												now_time_log.month,
+												now_time_log.year,
+												now_time_log.hour,
+												now_time_log.minute)
+			if not os.path.isfile("data/reviews.npy"):
+				np.save(arr=np.array([]), file="data/reviews.npy")
+				reviewsList = []
+			else: 
+				reviewsListNp = np.load("data/reviews.npy")
+				reviewsList = reviewsListNp.tolist()
+			first = str(message.from_user.first_name) if message.from_user.first_name != None else ""
+			last = str(message.from_user.last_name) + " "  if message.from_user.last_name != None and first != "" else ""
+			reviewsList.insert(0, f"*{first}{last} {now_time_format}:*\n{message.text}")
+
+			np.save(arr=np.array(reviewsList), file="data/reviews.npy")
 		elif listOfClients[id].wait_to_support:
 			await bot.send_message(chat_id=-1001980044675, text=f"{message.text}\n\nОтправил: {message.from_user.username}\nЕго id: {message.from_user.id}")
 			listOfClients[id].wait_to_support = False

@@ -64,6 +64,8 @@ if not tech_raboty:
 	clientCommands.init(bot, dp, on_server)
 	andcool_id = -1001980044675
 
+
+
 	#---------------------------------------------------------------------------------------------------
 
 
@@ -93,11 +95,16 @@ if not tech_raboty:
 			
 			if len(reviewsList) <= messages_on_page:
 				reviewTxt = []
-				counter = 0
-				for x in reviewsList:
-					msg_id = f"({len(reviewsList) - counter})" if andcool_id == message.chat.id else ""
-					reviewTxt.append(f"{x} {msg_id}\n\n")
-					counter += 1
+
+				for x in range(len(reviewsList)):
+					member = await bot.get_chat_member(int(reviewsList[x][1]), int(reviewsList[x][1]))
+					
+					first = str(member.user.first_name) if member.user.first_name != None else ""
+					kast_a = " " if first != "" else ""
+					last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+					msg_id = f"({len(reviewsList) - x}) ({reviewsList[x][1]})" if andcool_id == message.chat.id else ""
+					reviewTxt.append(f"*{first}{last} {reviewsList[x][0]} {msg_id}\n\n")
+
 				rew = "".join(reviewTxt)
 				await message.answer(text=f"Отзывы:\n{rew}*Страница 1-1*\nОставить отзыв можно отправив команду /review", parse_mode="Markdown")
 			else:
@@ -120,8 +127,12 @@ if not tech_raboty:
 				reviewTxt = []
 				for x in range(messages_on_page):
 					try:
-						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.chat.id else ""
-						reviewTxt.append(f"{reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)]} {msg_id}\n\n")
+						member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.chat.id else ""
+						first = str(member.user.first_name) if member.user.first_name != None else ""
+						kast_a = " " if first != "" else ""
+						last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+						reviewTxt.append(f"*{first}{last} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 					except: pass
 				rew = "".join(reviewTxt)
 				try:
@@ -166,8 +177,13 @@ if not tech_raboty:
 		reviewTxt = []
 		for x in range(messages_on_page):
 			try:
-				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))})" if andcool_id == message.message.chat.id else ""
-				reviewTxt.append(f"{reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)]} {msg_id}\n\n")
+				member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+						
+				first = str(member.user.first_name) if member.user.first_name != None else ""
+				kast_a = " " if first != "" else ""
+				last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.message.chat.id else ""
+				reviewTxt.append(f"*{first}{last} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 			except: pass
 		rew = "".join(reviewTxt)
 		try:
@@ -360,7 +376,14 @@ if not tech_raboty:
 	async def handle_docs_photo(message: types.Message):
 		global listOfClients
 		
-
+		if message.from_user.id == 1197005557:
+			if message.caption != None:
+				mess = message.caption.split(" ")
+				if mess[0] == "/sendToId":
+					await message.photo[-1].download(destination_file=f'file.png')
+					photo = open(f'file.png', 'rb')
+					await bot.send_photo(chat_id=int(mess[1]), caption=f"Ответ администратора:\n{mess[2]}", photo=photo)
+		
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
 			await sessionPizda(message)
@@ -485,7 +508,7 @@ if not tech_raboty:
 		await acceptChoose(message.message)
 
 
-	colour_txt_cu = ["golden"]
+	colour_txt_cu = ["golden", "pwOld"]
 	@dp.callback_query_handler(text=colour_txt_cu)
 	async def from_f(message: CallbackQuery):
 
@@ -497,7 +520,7 @@ if not tech_raboty:
 			await sessionPizda(message.message)
 			return
 
-		colours = [0]
+		colours = [0, 1]
 		listOfClients[id].pepeImage = colours[colour_txt_cu.index(message.data)]
 		listOfClients[id].colour = (0, 0, 0)
 
@@ -559,7 +582,7 @@ if not tech_raboty:
 			await sessionPizda(message)
 			return
 		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-				text='Готово ✓', callback_data='done_d')
+				text='Подтвердить выбор цвета', callback_data='done_d')
 
 		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 			text='Изменить цвет', callback_data='colD')
@@ -713,6 +736,9 @@ if not tech_raboty:
 			text='Синий', callback_data='blue')
 		goldenBtn: InlineKeyboardButton = InlineKeyboardButton(
 			text='Повязка Пугода', callback_data='golden')
+		
+		pwOld: InlineKeyboardButton = InlineKeyboardButton(
+			text='Старая повязка Пугода', callback_data='pwOld')
 
 		big_button_2: InlineKeyboardButton = InlineKeyboardButton(
 			text='Красный', callback_data='red')
@@ -743,6 +769,7 @@ if not tech_raboty:
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
 		keyboard1.row(goldenBtn)
+		keyboard1.row(pwOld)
 		keyboard1.row(big_button_1, big_button_2, big_button_3)
 		keyboard1.row(big_button_4, pink_btn, violet_btn)
 		keyboard1.row(orange_btn, white_btn, black_btn)
@@ -1188,10 +1215,8 @@ if not tech_raboty:
 			else: 
 				reviewsListNp = np.load("data/reviews.npy")
 				reviewsList = reviewsListNp.tolist()
-			first = str(message.from_user.first_name) if message.from_user.first_name != None else ""
-			kast_a = " " if first != "" else ""
-			last = (kast_a + str(message.from_user.last_name)) if message.from_user.last_name != None else ""
-			reviewsList.insert(0, f"*{first}{last} {now_time_format}:*\n{message.text}")
+
+			reviewsList.insert(0, [f"{now_time_format}:*\n{message.text}", message.from_user.id])
 
 			np.save(arr=np.array(reviewsList), file="data/reviews.npy")
 		elif listOfClients[id].wait_to_support:
@@ -1272,7 +1297,7 @@ if not tech_raboty:
 					await render_and_edit(message, id, id1)
 
 					big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-						text='Готово ✓', callback_data='done_c')
+						text='Подтвердить выбор цвета', callback_data='done_c')
 
 					big_button_5: InlineKeyboardButton = InlineKeyboardButton(
 						text='Изменить цвет', callback_data='colD')

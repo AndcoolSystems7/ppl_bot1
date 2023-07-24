@@ -198,4 +198,17 @@ def init(bot, dp, on_server):
 				np.save(arr=np.array(reviewsList), file="data/banned.npy")
 				await message.answer(text="Разбанен!")
 			else: await message.answer(text="Человек не забанен")
+
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['info'])
+	async def send_welcome(message: types.Message):
+		id = int(message.text.split(" ")[1])
+		andcool_id = -1001980044675
+		try:
+			member = await bot.get_chat_member(id, id)
+			await message.answer(text=member)
+		except Exception as e: await message.answer(text=e)
+		#print(member)
 		

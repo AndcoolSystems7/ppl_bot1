@@ -70,6 +70,23 @@ def clear(img, pos):
             except: pass
     return rgb_im
 
+def paste_trans(img, shadow):
+    rgb_im = img.convert('RGBA')
+    shadow_im = shadow.convert('RGBA')
+    
+    w, h = rgb_im.size
+    for y in range(h):
+        for x in range(w):
+            try: 
+                r, g, b, t = rgb_im.getpixel((x, y))
+                rs, gs, bs, ts = shadow_im.getpixel((x, y))
+                if t != 0:
+                    a = (r + b + g) // 3
+                    
+                    rgb_im.putpixel((x, y), (max(0, r - ts), max(0, g - ts), max(0, b - ts), t))
+            except: pass
+    return rgb_im
+
 def crop(img, abs, slim):
 
     image = Image.open(img).convert("RGBA")
@@ -186,7 +203,7 @@ class Client:
         self.x_o = [48, 0, 40, 0]
         self.y_o = [52, 52, 36, 36]
 
-        self.pepes = [f for f in listdir("res/pepes") if isfile(join("res/pepes", f))]
+        self.pepes = ["pepe.png", "pepe1.png"]
         
 
         self.poses = [
@@ -299,6 +316,7 @@ class Client:
 
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
+
             if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
 
 
@@ -331,7 +349,7 @@ class Client:
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)
     
-
+        #render_image = paste_trans(self.skin_raw.copy(), Image.open("res/shadow.png"))
         self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
         await self.mc_class.initialize()
 

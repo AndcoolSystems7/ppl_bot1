@@ -38,7 +38,8 @@ from aiogram.utils.exceptions import (MessageCantBeDeleted,
 from contextlib import suppress
 import scripts.clientCommands as clientCommands
 import math
-from scripts.emoji import emoji_list
+import scripts.emoji as emoji
+import importlib
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -66,7 +67,16 @@ if not tech_raboty:
 	andcool_id = -1001980044675
 
 
+	#---------------------------------------------------------------------------------------------------
 
+	@dp.message_handler(commands=['badgesReload'])
+	async def send_welcome(message: types.Message):
+		andcool_id = -1001980044675
+		if andcool_id == message.chat.id:
+			try:
+				importlib.reload(emoji)
+				await message.reply(text="Emoji reloaded")
+			except Exception as e: await message.reply(text=e)
 	#---------------------------------------------------------------------------------------------------
 
 
@@ -104,8 +114,8 @@ if not tech_raboty:
 					kast_a = " " if first != "" else ""
 					last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
 					msg_id = f"({len(reviewsList) - x}) ({reviewsList[x][1]})" if andcool_id == message.chat.id else ""
-					emoji = emoji_list.get(int(reviewsList[x][1]), "")
-					reviewTxt.append(f"*{first}{last}{emoji} {reviewsList[x][0]} {msg_id}\n\n")
+					emoji1 = emoji.badges.get(int(reviewsList[x][1]), "")
+					reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x][0]} {msg_id}\n\n")
 
 				rew = "".join(reviewTxt)
 				await message.answer(text=f"Отзывы:\n{rew}*Страница 1-1*\nОставить отзыв можно отправив команду /review", parse_mode="Markdown")
@@ -134,8 +144,8 @@ if not tech_raboty:
 						first = str(member.user.first_name) if member.user.first_name != None else ""
 						kast_a = " " if first != "" else ""
 						last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
-						emoji = emoji_list.get(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), "")
-						reviewTxt.append(f"*{first}{last}{emoji} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
+						emoji1 = emoji.badges.get(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), "")
+						reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 					except: pass
 				rew = "".join(reviewTxt)
 				try:
@@ -186,8 +196,8 @@ if not tech_raboty:
 				kast_a = " " if first != "" else ""
 				last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
 				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.message.chat.id else ""
-				emoji = emoji_list.get(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), "")
-				reviewTxt.append(f"*{first}{last}{emoji} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
+				emoji1 = emoji.badges.get(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), "")
+				reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 			except: pass
 		rew = "".join(reviewTxt)
 		try:
@@ -705,7 +715,7 @@ if not tech_raboty:
 		await message.message.answer_document(bio)
 		await listOfClients[id].info_id.delete()
 		listOfClients.pop(id)
-		await message.message.answer("Вы можете оставить отзыв, отправив команду /review")
+		await message.message.answer("Вы можете оставить отзыв, отправив команду /review\nВсе просто общаются в отзывах")
 
 	@dp.callback_query_handler(text="doneDeny")
 	async def from_f(message: CallbackQuery):

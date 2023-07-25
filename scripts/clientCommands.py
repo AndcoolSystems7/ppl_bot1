@@ -8,6 +8,7 @@ from io import BytesIO
 import scripts.help_renderer as help_renderer
 import os
 import numpy as np
+
 def init(bot, dp, on_server):
 	@dp.message_handler(commands=['changeUsername', 'changeBalance'])
 	async def send_welcome(message: types.Message):
@@ -211,4 +212,6 @@ def init(bot, dp, on_server):
 			await message.answer(text=member)
 		except Exception as e: await message.answer(text=e)
 		#print(member)
+
+	
 		

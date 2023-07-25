@@ -17,8 +17,8 @@ if not os.path.isfile("data/donations.npy"):
                   ["veel1en", 400.99, 1084649863],
                   ["rorik", 350.0, 1418299420],
                   ["ModErator5937", 275.0, 1255297867],
-                  ["Гамдав", 50.0, 995824148],
-                  ["Andcool", 100000, 1197005557]]
+                  ["Гамдав", 50.0, 995824148]
+                ]
     numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
 else: 
     donateList_npy = numpy.load("data/donations.npy")

@@ -66,7 +66,66 @@ if not tech_raboty:
 	clientCommands.init(bot, dp, on_server)
 	andcool_id = -1001980044675
 
+	#---------------------------------------------------------------------------------------------------
 
+	@dp.message_handler(commands=['badges'])
+	async def send_welcome(message: types.Message):
+		list = da.get_list()
+		balance = 0
+		cost = 10
+		for x in range(len(list)):
+			if int(list[x][2]) == message.from_user.id:
+				balance = float(list[x][1])
+				break
+		if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} рублей\nВашь баланс: {balance} рублей")
+		else: 
+			pay: InlineKeyboardButton = InlineKeyboardButton(
+			text='Купить', callback_data='payBadge')
+
+			deny: InlineKeyboardButton = InlineKeyboardButton(
+			text='Отмена', callback_data='denyBadge')
+
+				# Создаем объект инлайн-клавиатуры
+			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+			keyboard1.row(pay, deny)
+			await message.answer(text=f'Стоимость баджа: {cost} рублей\nНа вашем балансе достаточно средств, если вы готовы купить бадж, нажмите кнопку "Купить" ниже, сумма будет списана с вашего баланса. Если у вас уже есть бадж, после покупки нового он будет установлен вместо старого. Баджем считается 1 эмодзи поддерживаемый Телеграмом.',
+			reply_markup=keyboard1)
+
+
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="payBadge")
+	async def pay(message: CallbackQuery):
+		global listOfClients
+		await message.message.delete()
+		if listOfClients == []: listOfClients.append(client.Client(message.message.chat.id))
+		else:
+			finded = False
+			for add in range(len(listOfClients)):
+				if listOfClients[add].chat_id == message.message.chat.id:
+					finded == True
+					listOfClients[add] = client.Client(message.message.chat.id)
+					break
+			if not finded: listOfClients.append(client.Client(message.message.chat.id))
+
+
+		id = client.find_client(listOfClients, message.message.chat.id)
+		listOfClients[id].waitToBadge = True
+		deny: InlineKeyboardButton = InlineKeyboardButton(
+		text='Отмена', callback_data='denyBadge')
+
+				# Создаем объект инлайн-клавиатуры
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+		keyboard1.row(deny)
+		await message.message.answer(text=f'Окей, теперь отправьте мне *один* эмодзи, который хотите.', parse_mode="Markdown", reply_markup=keyboard1)
+
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="denyBadge")
+	async def pay(message: CallbackQuery):
+		global listOfClients
+		await message.message.delete()
+		id = client.find_client(listOfClients, message.message.chat.id)
 	#---------------------------------------------------------------------------------------------------
 
 	@dp.message_handler(commands=['badgesReload'])

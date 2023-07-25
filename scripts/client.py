@@ -185,6 +185,7 @@ class Client:
         self.waitToReview = False
         self.ReviewsMsg = None
         self.ReviewsPage = 0
+        self.waitToBadge = False
 
         self.pos = 4
         self.colour = (-1, -1, -1)

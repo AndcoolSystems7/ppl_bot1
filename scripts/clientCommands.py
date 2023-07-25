@@ -8,7 +8,13 @@ from io import BytesIO
 import scripts.help_renderer as help_renderer
 import os
 import numpy as np
-
+def findBadge(list, id1):
+	id = -1
+	for x in range(len(list)):
+		if int(list[x][0]) == int(id1):
+			id = x
+			break
+	return id
 def init(bot, dp, on_server):
 	@dp.message_handler(commands=['changeUsername', 'changeBalance'])
 	async def send_welcome(message: types.Message):
@@ -89,7 +95,7 @@ def init(bot, dp, on_server):
 			emotes = ["🥇", "🥈", "🥉"]
 			for x in range(count):
 				emote = emotes[x] if x < 3 else ""
-				donate_text = f"{donate_text}{x + 1}. {emote}*{donateList[x][0]}* - {round(float(donateList[x][1]), 2)} *RUB*\n"
+				donate_text = f"{donate_text}{x + 1}. {emote}*{donateList[x][0]}* - {round(float(donateList[x][3]), 2)} *RUB*\n"
 
 			donate_text = donate_text + "\nХотите сюда? Тогда вы можете поддержать разработчика, отправив /donate"
 
@@ -212,6 +218,52 @@ def init(bot, dp, on_server):
 			await message.answer(text=member)
 		except Exception as e: await message.answer(text=e)
 		#print(member)
+
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['changeBadge'])
+	async def send_welcome(message: types.Message):
+		try:
+			id = int(message.text.split(" ")[1])
+			t = message.text.split(" ")[2:]
+			em = " ".join(t)
+			andcool_id = -1001980044675
+			
+			if andcool_id == message.chat.id:
+				badgesListn = np.load("data/badges.npy")
+				badgesList = badgesListn.tolist()
+
+				id1 = findBadge(badgesList, id)
+				if id1 == -1: badgesList.append([int(id), em])
+				else: badgesList[id1][1] = em
+
+				np.save(arr=np.array(badgesList), file="data/badges.npy")
+				await message.answer(text="Badge changed!")
+		except Exception as e: await message.answer(text=e)
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['setBadgeCost'])
+	async def send_welcome(message: types.Message):
+		try:
+			cost = float(message.text.split(" ")[1])
+			
+			andcool_id = 1197005557
+			
+			if andcool_id == message.from_user.id:
+				if os.path.isfile("data/cost.npy"):
+					badgesListn = np.load("data/cost.npy")
+					badgesList = badgesListn.tolist()
+					badgesList = [cost]
+					np.save(arr=np.array(badgesList), file="data/cost.npy")
+				else:
+					badgesList = [cost]
+					np.save(arr=np.array(badgesList), file="data/cost.npy")
+				await message.answer(text="Cost changed!")
+		except Exception as e: await message.answer(text=e)
+
+
 
 	
 		

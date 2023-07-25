@@ -13,11 +13,11 @@ logging.basicConfig(level=logging.INFO)
 alert = daa.Alert("jCzYqIMrhfX1cn3GeK3B")
 alerting_id = -1
 if not os.path.isfile("data/donations.npy"):
-    donateList = [["ReZoort", 501.0, 1017884431],
-                  ["veel1en", 400.99, 1084649863],
-                  ["rorik", 350.0, 1418299420],
-                  ["ModErator5937", 275.0, 1255297867],
-                  ["Гамдав", 50.0, 995824148]
+    donateList = [["ReZoort", 501.0, 1017884431, 501.0],
+                  ["veel1en", 400.99, 1084649863, 400.99],
+                  ["rorik", 350.0, 1418299420, 350.0],
+                  ["ModErator5937", 485.0, 1255297867, 485.0],
+                  ["Гамдав", 50.0, 995824148, 50.0]
                 ]
     numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
 else: 
@@ -29,11 +29,14 @@ else:
                 topid = donateList[x][0]
                 topsc = donateList[x][1]
                 topidd = donateList[x][2]
+                topscm = donateList[x][3]
 
+                donateList[x][3] = donateList[x + 1][3]
                 donateList[x][2] = donateList[x + 1][2]
                 donateList[x][1] = donateList[x + 1][1]
                 donateList[x][0] = donateList[x + 1][0]
 
+                donateList[x + 1][3] = topscm
                 donateList[x + 1][2] = topidd
                 donateList[x + 1][1] = topsc
                 donateList[x + 1][0] = topid
@@ -45,8 +48,7 @@ def init(bot1, dp1):
     global dp
     bot = bot1
     dp = dp1
-
-
+print(donateList)
 da_event = -1
 
 def sortir(donateList):
@@ -56,11 +58,14 @@ def sortir(donateList):
                 topid = donateList[x][0]
                 topsc = donateList[x][1]
                 topidd = donateList[x][2]
+                topscm = donateList[x][3]
 
+                donateList[x][3] = donateList[x + 1][3]
                 donateList[x][2] = donateList[x + 1][2]
                 donateList[x][1] = donateList[x + 1][1]
                 donateList[x][0] = donateList[x + 1][0]
 
+                donateList[x + 1][3] = topscm
                 donateList[x + 1][2] = topidd
                 donateList[x + 1][1] = topsc
                 donateList[x + 1][0] = topid
@@ -78,6 +83,7 @@ def new_donation(event):
     if username == None: username = "Аноним"
     last_balance = 0
     balance_now = 0
+    
     if event.message != None: 
         try: id = int(event.message.split(" ")[0])
         except:pass
@@ -102,36 +108,41 @@ def new_donation(event):
         if idd != -1 and donateList[idd][2] != -1:
             for x in range(len(donateList)):
                 if int(donateList[x][2]) == int(donateList[idd][2]) and x != idd:
-                    donateList[idd][1] = float(donateList[idd][1]) + float(donateList[x][1])
-                    
+                    donateList[idd][1] = float(donateList[idd][1]) + float(donateList[x][1])    
                     to_pop.append(x)
-                    #print(x)
             pop_c = 0
             for x_pop in to_pop:
                 donateList.pop(x_pop - pop_c)
                 pop_c += 1
         
         try: 
-            if not finded: donateList.append([username, float(event.amount_main), int(event.message.split(" ")[0])])
+            if not finded: donateList.append([username, float(event.amount_main), int(event.message.split(" ")[0]), float(event.amount_main)])
         except: 
-            if not finded: donateList.append([username, float(event.amount_main), -1])
+            if not finded: donateList.append([username, float(event.amount_main), -1, float(event.amount_main)])
 
         balance_now = float(donateList[idd][1])
         for x_s in range(len(donateList)):
             for x in range(len(donateList) - 1):
-                if float(donateList[x][1]) < float(donateList[x + 1][1]):
+                if float(donateList[x][3]) < float(donateList[x + 1][3]):
                     topid = donateList[x][0]
                     topsc = donateList[x][1]
                     topidd = donateList[x][2]
+                    topscm = donateList[x][3]
 
+                    donateList[x][3] = donateList[x + 1][3]
                     donateList[x][2] = donateList[x + 1][2]
                     donateList[x][1] = donateList[x + 1][1]
                     donateList[x][0] = donateList[x + 1][0]
 
+                    donateList[x + 1][3] = topscm
                     donateList[x + 1][2] = topidd
                     donateList[x + 1][1] = topsc
                     donateList[x + 1][0] = topid
+        
+        
 
+        if finded: donateList[idd][3] = float(donateList[idd][3]) + float(event.amount_main)
+        
         numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
 
 
@@ -157,3 +168,19 @@ def get_event():
 def reset_event():
     global da_event
     da_event = -1
+
+def pay(id, cost):
+    global donateList
+    suc = False
+    
+    if cost != 0:
+        for x in range(len(donateList)):
+            if int(donateList[x][2]) == id:
+                donateList[x][1] = float(donateList[x][1]) - cost
+                numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
+                suc = True
+                break
+    elif cost == 0: suc = True
+    return suc
+
+            

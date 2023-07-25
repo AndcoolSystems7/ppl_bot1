@@ -19,6 +19,7 @@ if on_server: from scripts.background import keep_alive
 import aiogram
 import scripts.client as client
 import os
+import emoji
 from PIL import Image
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import CallbackQuery
@@ -38,7 +39,6 @@ from aiogram.utils.exceptions import (MessageCantBeDeleted,
 from contextlib import suppress
 import scripts.clientCommands as clientCommands
 import math
-import scripts.emoji as emoji
 import importlib
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
@@ -58,40 +58,103 @@ async def delete_message(message: types.Message, sleep_time: int = 0):
         await message.delete()
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
+def findBadge(list, id1):
+	id = -1
+	for x in range(len(list)):
+		if int(list[x][0]) == int(id1):
+			id = x
+			break
+	return id
 
 if not tech_raboty:
 	listOfClients = []
+	
 	welcome_msg = Image.open(f"res/presets/start.png")
 
 	clientCommands.init(bot, dp, on_server)
 	andcool_id = -1001980044675
+	if not os.path.isfile("data/badges.npy"):
+		badgesList = [[1197005557, "✓ 🤨"],
+					[1017884431, "🍉"],
+					[2126292175, "🤓"],
+					[1746757903, "🦾"],
+					[1255297867, "👑"],
+					[1539634122, "🦊"]
+					]
+		np.save(arr=np.array(badgesList), file="data/badges.npy")
+	else: 
+		badgesListn = np.load("data/badges.npy")
+		badgesList = badgesListn.tolist()
 
+	#---------------------------------------------------------------------------------------------------
+	def reloadBadge():
+		global badgesList
+		try:
+			if not os.path.isfile("data/badges.npy"):
+				badgesList = [[1197005557, "✓ 🤨"],
+							[1017884431, "🍉"],
+							[2126292175, "🤓"],
+							[1746757903, "🦾"],
+							[1255297867, "👑"],
+							[1539634122, "🦊"]
+							]
+				np.save(arr=np.array(badgesList), file="data/badges.npy")
+			else: 
+				badgesListn = np.load("data/badges.npy")
+				badgesList = badgesListn.tolist()
+
+		except Exception as e: pass
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['badgesReload'])
+	async def a(message: types.Message):
+		global badgesList
+		try:
+			if not os.path.isfile("data/badges.npy"):
+				badgesList = [[1197005557, "✓ 🤨"],
+							[1017884431, "🍉"],
+							[2126292175, "🤓"],
+							[1746757903, "🦾"],
+							[1255297867, "👑"],
+							[1539634122, "🦊"]
+							]
+				np.save(arr=np.array(badgesList), file="data/badges.npy")
+			else: 
+				badgesListn = np.load("data/badges.npy")
+				badgesList = badgesListn.tolist()
+
+			await message.answer(text="Badges reloaded!")
+		except Exception as e: await message.answer(text=e)
 	#---------------------------------------------------------------------------------------------------
 
 	@dp.message_handler(commands=['badges'])
 	async def send_welcome(message: types.Message):
 		list = da.get_list()
 		balance = 0
-		cost = 10
-		for x in range(len(list)):
-			if int(list[x][2]) == message.from_user.id:
-				balance = float(list[x][1])
-				break
-		if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} рублей\nВашь баланс: {balance} рублей")
-		else: 
-			pay: InlineKeyboardButton = InlineKeyboardButton(
-			text='Купить', callback_data='payBadge')
+		reviewsListNp = np.load("data/cost.npy")
+		reviewsList1 = reviewsListNp.tolist()
+		cost = reviewsList1[0]
+		if cost != -1:
+			for x in range(len(list)):
+				if int(list[x][2]) == message.from_user.id:
+					balance = float(list[x][1])
+					break
+			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} рублей\nВаш баланс: {balance} рублей")
+			else: 
+				pay: InlineKeyboardButton = InlineKeyboardButton(
+				text='Купить', callback_data='payBadge')
 
-			deny: InlineKeyboardButton = InlineKeyboardButton(
-			text='Отмена', callback_data='denyBadge')
+				deny: InlineKeyboardButton = InlineKeyboardButton(
+				text='Отмена', callback_data='denyBadge')
 
-				# Создаем объект инлайн-клавиатуры
-			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+					# Создаем объект инлайн-клавиатуры
+				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
-			keyboard1.row(pay, deny)
-			await message.answer(text=f'Стоимость баджа: {cost} рублей\nНа вашем балансе достаточно средств, если вы готовы купить бадж, нажмите кнопку "Купить" ниже, сумма будет списана с вашего баланса. Если у вас уже есть бадж, после покупки нового он будет установлен вместо старого. Баджем считается 1 эмодзи поддерживаемый Телеграмом.',
-			reply_markup=keyboard1)
-
+				keyboard1.row(pay, deny)
+				costTxt = f"{cost} рублей" if cost != 0 else "Бесплатно"
+				await message.answer(text=f'Стоимость баджа: {costTxt}\nНа вашем балансе достаточно средств ({float(list[x][1])} рублей), если вы готовы купить бадж, нажмите кнопку "Купить" ниже, сумма будет списана с вашего баланса. Если у вас уже есть бадж, после покупки нового он будет установлен вместо старого. Баджем считается 1 эмодзи поддерживаемый Телеграмом.',
+				reply_markup=keyboard1)
+		else: await message.answer(text=f"В данный момент продажа баджей приостановлена")
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="payBadge")
@@ -126,16 +189,8 @@ if not tech_raboty:
 		global listOfClients
 		await message.message.delete()
 		id = client.find_client(listOfClients, message.message.chat.id)
-	#---------------------------------------------------------------------------------------------------
-
-	@dp.message_handler(commands=['badgesReload'])
-	async def send_welcome(message: types.Message):
-		andcool_id = -1001980044675
-		if andcool_id == message.chat.id:
-			try:
-				importlib.reload(emoji)
-				await message.reply(text="Badges reloaded")
-			except Exception as e: await message.reply(text=f"Badges reloader:{e}")
+		if id != -1: listOfClients[id].waitToBadge = False
+	
 	#---------------------------------------------------------------------------------------------------
 
 
@@ -164,20 +219,7 @@ if not tech_raboty:
 			messages_on_page = 4
 			
 			if len(reviewsList) <= messages_on_page:
-				reviewTxt = []
-
-				for x in range(len(reviewsList)):
-					member = await bot.get_chat_member(int(reviewsList[x][1]), int(reviewsList[x][1]))
-					
-					first = str(member.user.first_name) if member.user.first_name != None else ""
-					kast_a = " " if first != "" else ""
-					last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
-					msg_id = f"({len(reviewsList) - x}) ({reviewsList[x][1]})" if andcool_id == message.chat.id else ""
-					emoji1 = emoji.badges.get(int(reviewsList[x][1]), "")
-					reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x][0]} {msg_id}\n\n")
-
-				rew = "".join(reviewTxt)
-				await message.answer(text=f"Отзывы:\n{rew}*Страница 1-1*\nОставить отзыв можно отправив команду /review", parse_mode="Markdown")
+				pass
 			else:
 				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 				big_button_4: InlineKeyboardButton = InlineKeyboardButton(
@@ -194,21 +236,23 @@ if not tech_raboty:
 						keyboard1.row(big_button_4)
 				elif listOfClients[id].ReviewsPage == 0: 
 					keyboard1.row(big_button_5)
-				
+				global badgesList
 				reviewTxt = []
 				for x in range(messages_on_page):
-					try:
+					#try:
+					if 	True:
 						member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
 						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.chat.id else ""
 						first = str(member.user.first_name) if member.user.first_name != None else ""
 						kast_a = " " if first != "" else ""
 						last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
-						emoji1 = emoji.badges.get(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), "")
+						badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+						emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
 						reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
-					except: pass
+					#except Exception as e: print(e) 
 				rew = "".join(reviewTxt)
 				try:
-					listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review", parse_mode="Markdown", reply_markup=keyboard1)
+					listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", parse_mode="Markdown", reply_markup=keyboard1)
 				except: pass
 				
 
@@ -247,6 +291,7 @@ if not tech_raboty:
 		elif listOfClients[id].ReviewsPage == 0: 
 			keyboard1.row(big_button_5)
 		reviewTxt = []
+		global badgesList
 		for x in range(messages_on_page):
 			try:
 				member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
@@ -255,12 +300,13 @@ if not tech_raboty:
 				kast_a = " " if first != "" else ""
 				last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
 				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.message.chat.id else ""
-				emoji1 = emoji.badges.get(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), "")
+				badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+				emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
 				reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 			except: pass
 		rew = "".join(reviewTxt)
 		try:
-			await listOfClients[id].ReviewsMsg.edit_text(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review", reply_markup=keyboard1, parse_mode="Markdown")
+			await listOfClients[id].ReviewsMsg.edit_text(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", reply_markup=keyboard1, parse_mode="Markdown")
 		except: pass
 	#---------------------------------------------------------------------------------------------------
 	
@@ -1270,8 +1316,35 @@ if not tech_raboty:
 		id1 = message.chat.id
 
 		
+		if listOfClients[id].waitToBadge:
+			if len(message.text) == 1:
+				forbidden_emojies = ["✓", "✅", "✔️", "☑️", "✔"]
+				if message.text in forbidden_emojies: await message.answer("Извините, вы не можете поставить этот бадж")
+				else:
+					if emoji.is_emoji(message.text):
+						reviewsListNp = np.load("data/cost.npy")
+						reviewsList1 = reviewsListNp.tolist()
+						cost = reviewsList1[0]
+						global badgesList
+						id2 = findBadge(badgesList, id1)
+						paySucsess = False
+						if cost != -1: paySucsess = da.pay(int(id1), float(cost))
+									
+						if paySucsess:
+							if id2 == -1: badgesList.append([int(id1), message.text])
 
-		if listOfClients[id].waitToReview:
+							else: badgesList[id2][1] = message.text
+							np.save(arr=np.array(badgesList), file="data/badges.npy")
+							reloadBadge()
+							listOfClients[id].waitToBadge = False
+							await message.answer("Бадж установлен!")
+							await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* купил бадж {message.text}", parse_mode="Markdown")
+						else: await message.answer("Не удалось установить бадж")
+
+					
+					else: await message.answer("Пожалуйста, отправьте именно эмодзи")
+			else: await message.answer("Пожалуйста, отправьте одно эмодзи")
+		elif listOfClients[id].waitToReview:
 			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* оставил отзыв:\n{message.text}\nЕго id: {message.from_user.id}", parse_mode="Markdown")
 			listOfClients[id].waitToReview = False
 			await message.answer("Спасибо за отзыв!\nПосмотреть список всех отзывов можно отправив /reviews")

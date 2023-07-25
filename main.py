@@ -75,8 +75,8 @@ if not tech_raboty:
 		if andcool_id == message.chat.id:
 			try:
 				importlib.reload(emoji)
-				await message.reply(text="Emoji reloaded")
-			except Exception as e: await message.reply(text=e)
+				await message.reply(text="Badges reloaded")
+			except Exception as e: await message.reply(text=f"Badges reloader:{e}")
 	#---------------------------------------------------------------------------------------------------
 
 

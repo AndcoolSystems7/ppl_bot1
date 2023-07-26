@@ -90,16 +90,7 @@ if not tech_raboty:
 	def reloadBadge():
 		global badgesList
 		try:
-			if not os.path.isfile("data/badges.npy"):
-				badgesList = [[1197005557, "✓ 🤨"],
-							[1017884431, "🍉"],
-							[2126292175, "🤓"],
-							[1746757903, "🦾"],
-							[1255297867, "👑"],
-							[1539634122, "🦊"]
-							]
-				np.save(arr=np.array(badgesList), file="data/badges.npy")
-			else: 
+			if os.path.isfile("data/badges.npy"):
 				badgesListn = np.load("data/badges.npy")
 				badgesList = badgesListn.tolist()
 
@@ -110,16 +101,7 @@ if not tech_raboty:
 	async def a(message: types.Message):
 		global badgesList
 		try:
-			if not os.path.isfile("data/badges.npy"):
-				badgesList = [[1197005557, "✓ 🤨"],
-							[1017884431, "🍉"],
-							[2126292175, "🤓"],
-							[1746757903, "🦾"],
-							[1255297867, "👑"],
-							[1539634122, "🦊"]
-							]
-				np.save(arr=np.array(badgesList), file="data/badges.npy")
-			else: 
+			if os.path.isfile("data/badges.npy"):
 				badgesListn = np.load("data/badges.npy")
 				badgesList = badgesListn.tolist()
 
@@ -139,7 +121,7 @@ if not tech_raboty:
 				if int(list[x][2]) == message.from_user.id:
 					balance = float(list[x][1])
 					break
-			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} рублей\nВаш баланс: {balance} рублей")
+			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} рублей\nВаш баланс: {balance} рублей\nПополнить баланс можно отправив /donate")
 			else: 
 				pay: InlineKeyboardButton = InlineKeyboardButton(
 				text='Купить', callback_data='payBadge')
@@ -151,10 +133,13 @@ if not tech_raboty:
 				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
 				keyboard1.row(pay, deny)
-				costTxt = f"{cost} рублей" if cost != 0 else "Бесплатно"
-				await message.answer(text=f'Стоимость баджа: {costTxt}\nНа вашем балансе достаточно средств ({float(list[x][1])} рублей), если вы готовы купить бадж, нажмите кнопку "Купить" ниже, сумма будет списана с вашего баланса. Если у вас уже есть бадж, после покупки нового он будет установлен вместо старого. Баджем считается 1 эмодзи поддерживаемый Телеграмом.',
-				reply_markup=keyboard1)
-		else: await message.answer(text=f"В данный момент продажа баджей приостановлена")
+				costTxt = f"{cost} *RUB*" if cost != 0 else "*Бесплатно*"
+				txt1 = f'*Купить бадж*\n\nСтоимость баджа: {costTxt}\nНа вашем балансе достаточно средств: {float(list[x][1])} *RUB*\n'
+				txt2 = 'Eсли вы готовы купить бадж, нажмите кнопку *"Купить"* ниже, сумма будет списана с вашего баланса. '
+				txt3 = 'Если у вас уже есть бадж, после покупки нового он будет заменён.\n*Баджем считается 1 эмодзи, поддерживаемый Телеграмом.*'
+				await message.answer(text=txt1+txt2+txt3,
+				reply_markup=keyboard1, parse_mode="Markdown")
+		else: await message.answer(text=f"В данный момент продажа баджей приостановлена😔\nВозвращайтесь позже")
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="payBadge")
@@ -238,17 +223,25 @@ if not tech_raboty:
 					keyboard1.row(big_button_5)
 				global badgesList
 				reviewTxt = []
+				if os.path.isfile("data/names.npy"):
+					namelistn = np.load("data/names.npy")
+					namelist = namelistn.tolist()
+				else: namelist = []
 				for x in range(messages_on_page):
 					#try:
 					if 	True:
 						member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
 						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.chat.id else ""
+						
 						first = str(member.user.first_name) if member.user.first_name != None else ""
 						kast_a = " " if first != "" else ""
 						last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+						
+						nickId = findBadge(namelist, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+						name = f"{first}{last}" if nickId == -1 else namelist[nickId][1]
 						badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
 						emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
-						reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
+						reviewTxt.append(f"*{name}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 					#except Exception as e: print(e) 
 				rew = "".join(reviewTxt)
 				try:
@@ -291,6 +284,10 @@ if not tech_raboty:
 		elif listOfClients[id].ReviewsPage == 0: 
 			keyboard1.row(big_button_5)
 		reviewTxt = []
+		if os.path.isfile("data/names.npy"):
+			namelistn = np.load("data/names.npy")
+			namelist = namelistn.tolist()
+		else: namelist = []
 		global badgesList
 		for x in range(messages_on_page):
 			try:
@@ -299,10 +296,13 @@ if not tech_raboty:
 				first = str(member.user.first_name) if member.user.first_name != None else ""
 				kast_a = " " if first != "" else ""
 				last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+				nickId = findBadge(namelist, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+				name = f"{first}{last}" if nickId == -1 else namelist[nickId][1]
+				
 				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.message.chat.id else ""
 				badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
 				emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
-				reviewTxt.append(f"*{first}{last}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
+				reviewTxt.append(f"*{name}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 			except: pass
 		rew = "".join(reviewTxt)
 		try:
@@ -627,7 +627,7 @@ if not tech_raboty:
 		await acceptChoose(message.message)
 
 
-	colour_txt_cu = ["golden", "pwOld"]
+	colour_txt_cu = ["golden", "pwOld", "shblue", "shyellow", "shgreen", "shred", "shpink", "shviolet", "shorange", "shblack", "shwhite", "shgold", "shsilver"]
 	@dp.callback_query_handler(text=colour_txt_cu)
 	async def from_f(message: CallbackQuery):
 
@@ -639,8 +639,7 @@ if not tech_raboty:
 			await sessionPizda(message.message)
 			return
 
-		colours = [0, 1]
-		listOfClients[id].pepeImage = colours[colour_txt_cu.index(message.data)]
+		listOfClients[id].pepeImage = colour_txt_cu.index(message.data)
 		listOfClients[id].colour = (0, 0, 0)
 
 		await render_and_edit(message.message, id, id1)
@@ -851,6 +850,9 @@ if not tech_raboty:
 	async def colorDialog(message, id):
 		global listOfClients
 		
+		shapeButt: InlineKeyboardButton = InlineKeyboardButton(
+			text='Повязки Шейп', callback_data='shape')
+		
 		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
 			text='Синий', callback_data='blue')
 		goldenBtn: InlineKeyboardButton = InlineKeyboardButton(
@@ -887,8 +889,9 @@ if not tech_raboty:
 				# Создаем объект инлайн-клавиатуры
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
-		keyboard1.row(goldenBtn)
-		keyboard1.row(pwOld)
+
+		keyboard1.row(shapeButt)
+		keyboard1.row(goldenBtn, pwOld)
 		keyboard1.row(big_button_1, big_button_2, big_button_3)
 		keyboard1.row(big_button_4, pink_btn, violet_btn)
 		keyboard1.row(orange_btn, white_btn, black_btn)
@@ -897,6 +900,86 @@ if not tech_raboty:
 		
 		if listOfClients[id].info_id == 0:
 			msg = await message.answer("Теперь выбери цвет повязки",
+																reply_markup=keyboard1)
+		else:
+			msg = await listOfClients[id].info_id.edit_text("Теперь выбери цвет повязки",
+																reply_markup=keyboard1)
+		return msg
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="colourShapeBack")
+	async def from_f(message: CallbackQuery):
+		global listOfClients
+		id1 = message.message.chat.id
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+		msg = await colorDialog(message, id)
+		listOfClients[id].info_id = msg
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="shape")
+	async def from_f(message: CallbackQuery):
+		global listOfClients
+		id1 = message.message.chat.id
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+		
+		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
+			text='Синий', callback_data='shblue')
+
+		big_button_2: InlineKeyboardButton = InlineKeyboardButton(
+			text='Красный', callback_data='shred')
+		big_button_3: InlineKeyboardButton = InlineKeyboardButton(
+			text='Зелёный', callback_data='shgreen')
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='Жёлтый', callback_data='shyellow')
+		
+		pink_btn: InlineKeyboardButton = InlineKeyboardButton(
+			text='Розовый', callback_data='shpink')
+		
+		violet_btn: InlineKeyboardButton = InlineKeyboardButton(
+			text='Фиолетовый', callback_data='shviolet')
+		
+		orange_btn: InlineKeyboardButton = InlineKeyboardButton(
+			text='Оранжевый', callback_data='shorange')
+		
+		white_btn: InlineKeyboardButton = InlineKeyboardButton(
+			text='Белый', callback_data='shwhite')
+		
+		black_btn: InlineKeyboardButton = InlineKeyboardButton(
+			text='Чёрный', callback_data='shblack')
+		
+		gold: InlineKeyboardButton = InlineKeyboardButton(
+			text='Золотой', callback_data='shgold')
+		
+		silver: InlineKeyboardButton = InlineKeyboardButton(
+			text='Серебряный', callback_data='shsilver')
+
+
+
+		back: InlineKeyboardButton = InlineKeyboardButton(
+			text='Назад', callback_data='colourShapeBack')
+				# Создаем объект инлайн-клавиатуры
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+
+		keyboard1.row(gold, silver)
+		keyboard1.row(big_button_1, big_button_2, big_button_3)
+		keyboard1.row(big_button_4, pink_btn, violet_btn)
+		keyboard1.row(orange_btn, white_btn, black_btn)
+		keyboard1.row(back)
+		
+
+
+
+		back: InlineKeyboardButton = InlineKeyboardButton(
+			text='Назад', callback_data='colourShapeBack')
+		
+		
+		if listOfClients[id].info_id == 0:
+			msg = await message.message.answer("Теперь выбери цвет повязки",
 																reply_markup=keyboard1)
 		else:
 			msg = await listOfClients[id].info_id.edit_text("Теперь выбери цвет повязки",
@@ -988,10 +1071,11 @@ if not tech_raboty:
 		importpar: InlineKeyboardButton = InlineKeyboardButton(
 			text='Импортировать настройки', callback_data='imp')
 
+		ppt = pepetype_btn if listOfClients[id].pepeImage == -1 else pass_btn
 		# Создаем объект инлайн-клавиатуры
 		keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
 		keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, export)
-		keyboard3.row(info_btn, overlay_btn,     pepetype_btn, importpar)
+		keyboard3.row(info_btn, overlay_btn,     ppt, importpar)
 		keyboard3.row(down_btn, pose_btn,        negative_btn, reset_btn)
 		keyboard3.row(pass_btn, delete_btn,        bw_btn,       bndg_downl)
 		keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
@@ -1318,7 +1402,7 @@ if not tech_raboty:
 		
 		if listOfClients[id].waitToBadge:
 			if len(message.text) == 1:
-				forbidden_emojies = ["✓", "✅", "✔️", "☑️", "✔"]
+				forbidden_emojies = "✓✅✔️☑️✔🤨🫃🫃🏻🫃🏼🫃🏽🫃🏾🫃🏿🫄🫄🏻🫄🏼🫄🏽🫄🏾🫄🏿👩‍❤️‍👩💑👨‍❤️‍👨👩‍❤️‍💋‍👩💏👨‍❤️‍💋‍👨👩‍👩‍👦👩‍👩‍👧👩‍👩‍👧‍👦👩‍👩‍👦‍👦👩‍👩‍👧‍👧👨‍👨‍👦👨‍👨‍👧👨‍👨‍👧‍👦👨‍👨‍👦‍👦👨‍👨‍👧‍👧🏳️‍🌈🏳️‍⚧️🇺🇦👨🏿‍❤‍👨🏿👨‍👦👨‍👧🍑🍆🔫🚬⚰️🪦⭐️🌟✨🥇🥈🥉🏆👑"
 				if message.text in forbidden_emojies: await message.answer("Извините, вы не можете поставить этот бадж")
 				else:
 					if emoji.is_emoji(message.text):
@@ -1337,13 +1421,15 @@ if not tech_raboty:
 							np.save(arr=np.array(badgesList), file="data/badges.npy")
 							reloadBadge()
 							listOfClients[id].waitToBadge = False
-							await message.answer("Бадж установлен!")
+							await message.answer(f"Бадж установлен!\nС баланса было списано {float(cost)} *RUB*\n*Добро пожаловать в клуб!* 👋", parse_mode="Markdown")
 							await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* купил бадж {message.text}", parse_mode="Markdown")
-						else: await message.answer("Не удалось установить бадж")
+						else: 
+							await message.answer("Произошла ошибка при покупке баджа, попробуйте позже или обратитесь в /support")
+							listOfClients[id].waitToBadge = False
 
 					
 					else: await message.answer("Пожалуйста, отправьте именно эмодзи")
-			else: await message.answer("Пожалуйста, отправьте одно эмодзи")
+			else: await message.answer("Пожалуйста, отправьте один эмодзи")
 		elif listOfClients[id].waitToReview:
 			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* оставил отзыв:\n{message.text}\nЕго id: {message.from_user.id}", parse_mode="Markdown")
 			listOfClients[id].waitToReview = False

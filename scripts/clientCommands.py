@@ -69,7 +69,7 @@ def init(bot, dp, on_server):
 		text3 = f"При возникновении вопросов или ошибок обращайтесь в {link3}\nили *отправив команду* /support\n\n"
 		link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
 		link2 = link('сайт', 'https://pplbandagebot.ru')
-		#link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
+		link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
 
 		text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
 		if on_server:
@@ -78,7 +78,7 @@ def init(bot, dp, on_server):
 			text5 = f"Версия *{ver}*\n"
 			f.close()
 		else: text5 = ""
-		text4 = f"*Created by AndcoolSystems*" #Продакшн: {link4}
+		text4 = f"*Created by AndcoolSystems*\nПродакшн: {link4}" #Продакшн: {link4}
 		donate_text = ""
 		if os.path.isfile("data/donations.npy"):
 			donate_text = "\n\nЛюди, поддержавшие проект:\n"
@@ -228,9 +228,9 @@ def init(bot, dp, on_server):
 			id = int(message.text.split(" ")[1])
 			t = message.text.split(" ")[2:]
 			em = " ".join(t)
-			andcool_id = -1001980044675
+			andcool_id = 1197005557
 			
-			if andcool_id == message.chat.id:
+			if andcool_id == message.from_user.id:
 				badgesListn = np.load("data/badges.npy")
 				badgesList = badgesListn.tolist()
 
@@ -239,6 +239,7 @@ def init(bot, dp, on_server):
 				else: badgesList[id1][1] = em
 
 				np.save(arr=np.array(badgesList), file="data/badges.npy")
+				
 				await message.answer(text="Badge changed!")
 		except Exception as e: await message.answer(text=e)
 
@@ -262,6 +263,63 @@ def init(bot, dp, on_server):
 					np.save(arr=np.array(badgesList), file="data/cost.npy")
 				await message.answer(text="Cost changed!")
 		except Exception as e: await message.answer(text=e)
+
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['setName'])
+	async def send_welcome(message: types.Message):
+		try:
+			andcool_id = 1197005557
+			
+			if andcool_id == message.from_user.id:
+				id = int(message.text.split(" ")[1])
+				t = message.text.split(" ")[2:]
+				em = " ".join(t)
+				
+				if os.path.isfile("data/names.npy"):
+					badgesListn = np.load("data/names.npy")
+					badgesList = badgesListn.tolist()
+					f = False
+					for x in range(len(badgesList)):
+						if int(badgesList[x][0]) == id: 
+							badgesList[x][1] = em
+							f = True
+							break
+					if not f: badgesList.append([id, em])
+					np.save(arr=np.array(badgesList), file="data/names.npy")
+				else:
+					badgesList = [[id, em]]
+					np.save(arr=np.array(badgesList), file="data/names.npy")
+				await message.answer(text="Nick changed!")
+		except Exception as e: await message.answer(text=e)
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['releaseName'])
+	async def send_welcome(message: types.Message):
+		andcool_id = 1197005557
+			
+		if andcool_id == message.from_user.id:
+			id = int(message.text.split(" ")[1])
+				
+			try:
+				
+				
+				if os.path.isfile("data/names.npy"):
+					badgesListn = np.load("data/names.npy")
+					badgesList = badgesListn.tolist()
+					toPop = []
+					for x in range(len(badgesList)):
+						if int(badgesList[x][0]) == id: 
+							toPop.append(x)
+					popC = 0
+					for x in toPop:
+						badgesList.pop(x - popC)
+						popC += 1
+					np.save(arr=np.array(badgesList), file="data/names.npy")
+				await message.answer(text="Nick released!")
+			except Exception as e: await message.answer(text=e)
 
 
 

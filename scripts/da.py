@@ -25,7 +25,7 @@ else:
     donateList = donateList_npy.tolist()
     for x_s in range(len(donateList)):
         for x in range(len(donateList) - 1):
-            if float(donateList[x][1]) < float(donateList[x + 1][1]):
+            if float(donateList[x][3]) < float(donateList[x + 1][3]):
                 topid = donateList[x][0]
                 topsc = donateList[x][1]
                 topidd = donateList[x][2]
@@ -54,7 +54,7 @@ da_event = -1
 def sortir(donateList):
     for x_s in range(len(donateList)):
         for x in range(len(donateList) - 1):
-            if float(donateList[x][1]) < float(donateList[x + 1][1]):
+            if float(donateList[x][3]) < float(donateList[x + 1][3]):
                 topid = donateList[x][0]
                 topsc = donateList[x][1]
                 topidd = donateList[x][2]
@@ -176,9 +176,12 @@ def pay(id, cost):
     if cost != 0:
         for x in range(len(donateList)):
             if int(donateList[x][2]) == id:
-                donateList[x][1] = float(donateList[x][1]) - cost
+                res = round(float(donateList[x][1]) - cost, 2)
+                if res >= 0:
+                    donateList[x][1] = res
+                    suc = True
                 numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
-                suc = True
+                
                 break
     elif cost == 0: suc = True
     return suc

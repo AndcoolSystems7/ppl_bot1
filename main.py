@@ -86,6 +86,11 @@ if not tech_raboty:
 		badgesListn = np.load("data/badges.npy")
 		badgesList = badgesListn.tolist()
 
+	if os.path.isfile("data/reviews.npy"):
+		reviewsListNp = np.load("data/reviews.npy")
+		reviewsList = reviewsListNp.tolist()
+	else: reviewsList = []
+
 	#---------------------------------------------------------------------------------------------------
 	def reloadBadge():
 		global badgesList
@@ -121,7 +126,7 @@ if not tech_raboty:
 				if int(list[x][2]) == message.from_user.id:
 					balance = float(list[x][1])
 					break
-			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} рублей\nВаш баланс: {balance} рублей\nПополнить баланс можно отправив /donate")
+			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} *RUB*\nВаш баланс: {balance} *RUB*\nПополнить баланс можно отправив /donate")
 			else: 
 				pay: InlineKeyboardButton = InlineKeyboardButton(
 				text='Купить', callback_data='payBadge')
@@ -156,16 +161,14 @@ if not tech_raboty:
 					break
 			if not finded: listOfClients.append(client.Client(message.message.chat.id))
 
-
 		id = client.find_client(listOfClients, message.message.chat.id)
 		listOfClients[id].waitToBadge = True
 		deny: InlineKeyboardButton = InlineKeyboardButton(
 		text='Отмена', callback_data='denyBadge')
 
-				# Создаем объект инлайн-клавиатуры
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
-
 		keyboard1.row(deny)
+
 		await message.message.answer(text=f'Окей, теперь отправьте мне *один* эмодзи, который хотите.', parse_mode="Markdown", reply_markup=keyboard1)
 
 	#---------------------------------------------------------------------------------------------------
@@ -175,93 +178,84 @@ if not tech_raboty:
 		await message.message.delete()
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id != -1: listOfClients[id].waitToBadge = False
-	
 	#---------------------------------------------------------------------------------------------------
-
 
 	@dp.message_handler(commands=['reviews'])
 	async def send_welcome(message: types.Message):
 		global andcool_id
-		if os.path.isfile("data/reviews.npy"):
-			reviewsListNp = np.load("data/reviews.npy")
-			reviewsList = reviewsListNp.tolist()
-			if reviewsList == []: 
-				await message.answer(text="Отзывов пока не было(")
-				return
-			global listOfClients
-			if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
-			else:
-				finded = False
-				for add in range(len(listOfClients)):
-					if listOfClients[add].chat_id == message.chat.id:
-						finded == True
-						listOfClients[add] = client.Client(message.chat.id)
-						break
-				if not finded: listOfClients.append(client.Client(message.chat.id))
+		global reviewsList
 
-			id1 = message.chat.id
-			id = client.find_client(listOfClients, message.chat.id)
-			messages_on_page = 4
+		if reviewsList == []: 
+			await message.answer(text="Отзывов пока не было(")
+			return
+		global listOfClients
+		if listOfClients == []: listOfClients.append(client.Client(message.chat.id))
+		else:
+			finded = False
+			for add in range(len(listOfClients)):
+				if listOfClients[add].chat_id == message.chat.id:
+					finded == True
+					listOfClients[add] = client.Client(message.chat.id)
+					break
+			if not finded: listOfClients.append(client.Client(message.chat.id))
+
+		id = client.find_client(listOfClients, message.chat.id)
+		messages_on_page = 4
 			
-			if len(reviewsList) <= messages_on_page:
-				pass
-			else:
-				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
-				big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-					text='←', callback_data='leftRev')
-				big_button_5: InlineKeyboardButton = InlineKeyboardButton(
-					text='→', callback_data='rightRev')
+		
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='«', callback_data='leftRev')
+		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+			text='»', callback_data='rightRev')
 				
-				pages_count = math.ceil(len(reviewsList) / messages_on_page) - 1
-				listOfClients[id].ReviewsPage = constrain(listOfClients[id].ReviewsPage, 0, pages_count)
-				if listOfClients[id].ReviewsPage > 0: 
-					if listOfClients[id].ReviewsPage < pages_count:
-						keyboard1.row(big_button_4, big_button_5)
-					elif listOfClients[id].ReviewsPage == pages_count: 
-						keyboard1.row(big_button_4)
-				elif listOfClients[id].ReviewsPage == 0: 
-					keyboard1.row(big_button_5)
-				global badgesList
-				reviewTxt = []
-				if os.path.isfile("data/names.npy"):
-					namelistn = np.load("data/names.npy")
-					namelist = namelistn.tolist()
-				else: namelist = []
-				for x in range(messages_on_page):
-					#try:
-					if 	True:
-						member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
-						msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.chat.id else ""
+		pages_count = math.ceil(len(reviewsList) / messages_on_page) - 1
+		listOfClients[id].ReviewsPage = constrain(listOfClients[id].ReviewsPage, 0, pages_count)
+		if listOfClients[id].ReviewsPage > 0: 
+			if listOfClients[id].ReviewsPage < pages_count:
+				keyboard1.row(big_button_4, big_button_5)
+			elif listOfClients[id].ReviewsPage == pages_count: 
+				keyboard1.row(big_button_4)
+		elif listOfClients[id].ReviewsPage == 0: 
+			keyboard1.row(big_button_5)
+		global badgesList
+		reviewTxt = []
+		if os.path.isfile("data/names.npy"):
+			namelistn = np.load("data/names.npy")
+			namelist = namelistn.tolist()
+		else: namelist = []
+		for x in range(messages_on_page):
+			try:
+				member = await bot.get_chat_member(int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]), int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.chat.id else ""
 						
-						first = str(member.user.first_name) if member.user.first_name != None else ""
-						kast_a = " " if first != "" else ""
-						last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+				first = str(member.user.first_name) if member.user.first_name != None else ""
+				kast_a = " " if first != "" else ""
+				last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
 						
-						nickId = findBadge(namelist, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
-						name = f"{first}{last}" if nickId == -1 else namelist[nickId][1]
-						badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
-						emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
-						reviewTxt.append(f"*{name}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
-					#except Exception as e: print(e) 
-				rew = "".join(reviewTxt)
-				try:
-					listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", parse_mode="Markdown", reply_markup=keyboard1)
-				except: pass
+				nickId = findBadge(namelist, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+				name = f"{first}{last}" if nickId == -1 else namelist[nickId][1]
+
+				badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+				emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
+
+				reviewTxt.append(f"*{name}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
+			except: pass
+		rew = "".join(reviewTxt)
+		try: listOfClients[id].ReviewsMsg = await message.answer(text=f"Отзывы:\n{rew}*Страница {listOfClients[id].ReviewsPage + 1}-{pages_count + 1}*\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", parse_mode="Markdown", reply_markup=keyboard1)
+		except: pass
 				
-
-		else: await message.answer(text="Отзывов пока не было(")
-
-
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text=["rightRev", "leftRev"])
 	async def from_f(message: CallbackQuery):
 		global listOfClients
-		reviewsListNp = np.load("data/reviews.npy")
-		reviewsList = reviewsListNp.tolist()
+		global reviewsList
+		
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
 			await sessionPizda(message.message)
 			return
+		
 		messages_on_page = 4
 		pages_count = math.ceil(len(reviewsList) / messages_on_page) - 1
 		if message.data == "rightRev":
@@ -270,9 +264,9 @@ if not tech_raboty:
 			if listOfClients[id].ReviewsPage > 0: listOfClients[id].ReviewsPage -= 1
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-			text='←', callback_data='leftRev')
+			text='«', callback_data='leftRev')
 		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
-			text='→', callback_data='rightRev')
+			text='»', callback_data='rightRev')
 		
 
 		listOfClients[id].ReviewsPage = constrain(listOfClients[id].ReviewsPage, 0, pages_count)
@@ -301,6 +295,7 @@ if not tech_raboty:
 				
 				msg_id = f"({len(reviewsList) - (x + (messages_on_page * listOfClients[id].ReviewsPage))}) ({reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]})" if andcool_id == message.message.chat.id else ""
 				badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][1]))
+
 				emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
 				reviewTxt.append(f"*{name}{emoji1} {reviewsList[x + (messages_on_page * listOfClients[id].ReviewsPage)][0]} {msg_id}\n\n")
 			except: pass
@@ -323,7 +318,6 @@ if not tech_raboty:
 					break
 			if not finded: listOfClients.append(client.Client(message.chat.id))
 
-		id1 = message.chat.id
 		banned = False
 		if os.path.isfile("data/banned.npy"):
 			reviewsListNp = np.load("data/banned.npy")
@@ -336,8 +330,7 @@ if not tech_raboty:
 			keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 			big_button_4: InlineKeyboardButton = InlineKeyboardButton(
 				text='Отмена', callback_data='reviewDeny')
-
-
+			
 			keyboard1.row(big_button_4)
 			listOfClients[id].waitToReview = True
 			await message.answer(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.\n*Пожалуйста*, будьте вежливыми и не употребляйте грубые слова и выражения!", parse_mode="Markdown", reply_markup=keyboard1)
@@ -346,7 +339,6 @@ if not tech_raboty:
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="reviewDeny")
 	async def from_f(message: CallbackQuery):
-		id1 = message.message.chat.id
 		global listOfClients
 		id = client.find_client(listOfClients, message.message.chat.id)
 		if id == -1: 
@@ -369,14 +361,10 @@ if not tech_raboty:
 					break
 			if not finded: listOfClients.append(client.Client(message.chat.id))
 
-		id1 = message.chat.id
-
 		id = client.find_client(listOfClients, message.chat.id)
 
 		listOfClients[id].wait_to_support = True
 		await message.answer(text="Окей, теперь отправь *одно* сообщение (можно фото с подписью), где описываете вашу проблему или вопрос.", parse_mode="Markdown")
-
-	
 
 	#---------------------------------------------------------------------------------------------------
 	async def render_and_edit(message, id, id1):
@@ -1391,8 +1379,8 @@ if not tech_raboty:
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(content_types=['text'])
 	async def echo(message: types.Message):
-
 		global listOfClients
+		global badgesList
 		id = client.find_client(listOfClients, message.chat.id)
 		if id == -1: 
 			if message.chat.id != -1001980044675: await sessionPizda(message)
@@ -1401,15 +1389,15 @@ if not tech_raboty:
 
 		
 		if listOfClients[id].waitToBadge:
+			
 			if len(message.text) == 1:
-				forbidden_emojies = "✓✅✔️☑️✔🤨🫃🫃🏻🫃🏼🫃🏽🫃🏾🫃🏿🫄🫄🏻🫄🏼🫄🏽🫄🏾🫄🏿👩‍❤️‍👩💑👨‍❤️‍👨👩‍❤️‍💋‍👩💏👨‍❤️‍💋‍👨👩‍👩‍👦👩‍👩‍👧👩‍👩‍👧‍👦👩‍👩‍👦‍👦👩‍👩‍👧‍👧👨‍👨‍👦👨‍👨‍👧👨‍👨‍👧‍👦👨‍👨‍👦‍👦👨‍👨‍👧‍👧🏳️‍🌈🏳️‍⚧️🇺🇦👨🏿‍❤‍👨🏿👨‍👦👨‍👧🍑🍆🔫🚬⚰️🪦⭐️🌟✨🥇🥈🥉🏆👑"
+				forbidden_emojies = "✓✅✔️☑️✔🤨🫃🫃🏻🫃🏼🫃🏽🫃🏾🫃🏿🫄🫄🏻🫄🏼🫄🏽🫄🏾🫄🏿👩‍❤️‍👩💑👨‍❤️‍👨👩‍❤️‍💋‍👩💏👨‍❤️‍💋‍👨👩‍👩‍👦👩‍👩‍👧👩‍👩‍👧‍👦👩‍👩‍👦‍👦👩‍👩‍👧‍👧👨‍👨‍👦👨‍👨‍👧👨‍👨‍👧‍👦👨‍👨‍👦‍👦👨‍👨‍👧‍👧🏳️‍🌈🏳️‍⚧️🇺🇦👨🏿‍❤‍👨🏿👨‍👦👨‍👧🍑🍆🔫🚬⚰️🪦⭐️🌟✨🥇🥈🥉🏆👑🖕"
 				if message.text in forbidden_emojies: await message.answer("Извините, вы не можете поставить этот бадж")
 				else:
 					if emoji.is_emoji(message.text):
 						reviewsListNp = np.load("data/cost.npy")
 						reviewsList1 = reviewsListNp.tolist()
 						cost = reviewsList1[0]
-						global badgesList
 						id2 = findBadge(badgesList, id1)
 						paySucsess = False
 						if cost != -1: paySucsess = da.pay(int(id1), float(cost))
@@ -1431,7 +1419,10 @@ if not tech_raboty:
 					else: await message.answer("Пожалуйста, отправьте именно эмодзи")
 			else: await message.answer("Пожалуйста, отправьте один эмодзи")
 		elif listOfClients[id].waitToReview:
-			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* оставил отзыв:\n{message.text}\nЕго id: {message.from_user.id}", parse_mode="Markdown")
+			global reviewsList
+			badgeId = findBadge(badgesList, int(message.from_user.id))
+			emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
+			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}{emoji1}* оставил отзыв:\n{message.text}\nЕго id: {message.from_user.id}", parse_mode="Markdown")
 			listOfClients[id].waitToReview = False
 			await message.answer("Спасибо за отзыв!\nПосмотреть список всех отзывов можно отправив /reviews")
 			now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
@@ -1441,13 +1432,6 @@ if not tech_raboty:
 												now_time_log.year,
 												now_time_log.hour,
 												now_time_log.minute)
-			if not os.path.isfile("data/reviews.npy"):
-				np.save(arr=np.array([]), file="data/reviews.npy")
-				reviewsList = []
-			else: 
-				reviewsListNp = np.load("data/reviews.npy")
-				reviewsList = reviewsListNp.tolist()
-
 			reviewsList.insert(0, [f"{now_time_format}:*\n{message.text}", message.from_user.id])
 
 			np.save(arr=np.array(reviewsList), file="data/reviews.npy")

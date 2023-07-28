@@ -190,7 +190,7 @@ if not tech_raboty:
 		if reviewsList == []: 
 			await message.answer(text="Отзывов пока не было(")
 			return
-		messages_on_page = 4
+		messages_on_page = 5
 			
 		
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
@@ -233,7 +233,7 @@ if not tech_raboty:
 		global reviewsList
 		
 		
-		messages_on_page = 4
+		messages_on_page = 5
 		pages_count = math.ceil(len(reviewsList) / messages_on_page) - 1
 		if message.data.find("rightRev") != -1:
 			nowPage = int(message.data[8:])

@@ -48,7 +48,6 @@ def init(bot1, dp1):
     global dp
     bot = bot1
     dp = dp1
-print(donateList)
 da_event = -1
 
 def sortir(donateList):

@@ -23,23 +23,7 @@ if not os.path.isfile("data/donations.npy"):
 else: 
     donateList_npy = numpy.load("data/donations.npy")
     donateList = donateList_npy.tolist()
-    for x_s in range(len(donateList)):
-        for x in range(len(donateList) - 1):
-            if float(donateList[x][3]) < float(donateList[x + 1][3]):
-                topid = donateList[x][0]
-                topsc = donateList[x][1]
-                topidd = donateList[x][2]
-                topscm = donateList[x][3]
-
-                donateList[x][3] = donateList[x + 1][3]
-                donateList[x][2] = donateList[x + 1][2]
-                donateList[x][1] = donateList[x + 1][1]
-                donateList[x][0] = donateList[x + 1][0]
-
-                donateList[x + 1][3] = topscm
-                donateList[x + 1][2] = topidd
-                donateList[x + 1][1] = topsc
-                donateList[x + 1][0] = topid
+    
 bot = None
 
 

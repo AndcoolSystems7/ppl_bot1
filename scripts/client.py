@@ -182,9 +182,8 @@ class Client:
         self.wait_to_support = False
         self.wait_to_file = 0
         self.import_msg = -1
-        self.waitToReview = False
-        self.ReviewsMsg = None
-        self.ReviewsPage = 0
+        self.waitToReview = -1
+        self.ReviewMsg = None
         self.waitToBadge = False
 
         self.pos = 4

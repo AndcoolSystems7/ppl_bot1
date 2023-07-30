@@ -144,30 +144,7 @@ def init(bot, dp, on_server):
 		text = f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число `{message.from_user.id}` *\(нажмите по числу для копирования\)*, а затем, через пробел оставьте своё сообщение\.\nDonationAlerts иногда не видит пришедшие донаты, поэтому если через 2\-3 минуты донат не пришёл обращайтесь в /support"
 		await message.answer(text, reply_markup=keyboard, parse_mode="MarkdownV2")
 
-	#---------------------------------------------------------------------------------------------------
 
-	@dp.message_handler(commands=['deleteReview'])
-	async def send_welcome(message: types.Message):
-		
-		if os.path.isfile("data/reviews.npy"):
-			reviewsListNp = np.load("data/reviews.npy")
-			reviewsList = reviewsListNp.tolist()
-			if reviewsList == []: 
-				await message.answer(text="Отзывов пока не было(")
-				return
-			id1 = message.chat.id
-			andcool_id = -1001980044675
-			if andcool_id == message.chat.id:
-				msg_id = message.text.split(" ")[1]
-				try:
-					if int(len(reviewsList) - int(msg_id)) >= 0:
-						reviewsList.pop(int(len(reviewsList) - int(msg_id)))
-						np.save(arr=np.array(reviewsList), file="data/reviews.npy")
-						await message.answer(text="Сообщение удалено!")
-					else: await message.answer(text="Ошибка! Проверьте номер сообщения")
-				except: await message.answer(text="Ошибка! Проверьте номер сообщения")
-
-		else: pass
 	#---------------------------------------------------------------------------------------------------
 
 	@dp.message_handler(commands=['ban'])
@@ -301,11 +278,8 @@ def init(bot, dp, on_server):
 		andcool_id = 1197005557
 			
 		if andcool_id == message.from_user.id:
-			id = int(message.text.split(" ")[1])
-				
+			id = int(message.text.split(" ")[1])	
 			try:
-				
-				
 				if os.path.isfile("data/names.npy"):
 					badgesListn = np.load("data/names.npy")
 					badgesList = badgesListn.tolist()
@@ -320,6 +294,30 @@ def init(bot, dp, on_server):
 					np.save(arr=np.array(badgesList), file="data/names.npy")
 				await message.answer(text="Nick released!")
 			except Exception as e: await message.answer(text=e)
+
+	@dp.message_handler(commands=['setDistribution'])
+	async def send_welcome(message: types.Message):
+		try:
+			emoji = message.text.split(" ")[1]
+			t = message.text.split(" ")[2:]
+			em = " ".join(t)
+			
+			andcool_id = 1197005557
+			
+			if andcool_id == message.from_user.id:
+				if os.path.isfile("data/distribution.npy"):
+					badgesListn = np.load("data/distribution.npy")
+					badgesList = badgesListn.tolist()
+					badgesList = [emoji, em]
+					np.save(arr=np.array(badgesList), file="data/distribution.npy")
+				else:
+					badgesList = [emoji, em]
+					np.save(arr=np.array(badgesList), file="data/distribution.npy")
+				await message.answer(text="distribution changed!")
+		except Exception as e: await message.answer(text=e)
+
+
+	#---------------------------------------------------------------------------------------------------
 
 
 

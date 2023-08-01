@@ -105,8 +105,12 @@ def init(bot, dp, on_server):
 		bio.name = f'{message.from_user.id}.png'
 		help_renderer.render().save(bio, 'PNG')
 		bio.seek(0)
+		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+			text='Контакты разработчиков', callback_data='contacts')
 
-		await message.reply_photo(bio, caption=text1+text2+text3+text6+text5+text4+donate_text, parse_mode='Markdown')
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
+			inline_keyboard=[[big_button_5]])
+		await message.reply_photo(bio, caption=text1+text2+text3+text6+text5+text4+donate_text, parse_mode='Markdown', reply_markup=keyboard1)
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['changelog'])
@@ -219,6 +223,32 @@ def init(bot, dp, on_server):
 				
 				await message.answer(text="Badge changed!")
 		except Exception as e: await message.answer(text=e)
+
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.message_handler(commands=['badgesList'])
+	async def send_welcome(message: types.Message):
+		#try:
+		if True:
+			andcool_id = 1197005557
+			
+			if andcool_id == message.from_user.id:
+				badgesListn = np.load("data/badges.npy")
+				badgesList = badgesListn.tolist()
+				text = []
+				for x in badgesList:
+					try:
+						member = await bot.get_chat_member(int(x[0]), int(x[0]))
+						first = str(member.user.first_name) if member.user.first_name != None else ""
+						kast_a = " " if first != "" else ""
+						last = (kast_a + str(member.user.last_name)) if member.user.last_name != None else ""
+					
+						text.append(f'{x[0]} - {first}{last} - {x[1]}\n')
+					except:pass
+
+				t = ''.join(text)
+				await message.answer(text=t)
+		#except Exception as e: await message.answer(text=e)
 
 	#---------------------------------------------------------------------------------------------------
 

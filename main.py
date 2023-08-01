@@ -301,7 +301,7 @@ if not tech_raboty:
 				sum+=int(rev[2])
 				c+=1
 		rew = "".join(reviewTxt)
-		try: await message.answer(text=f"Отзывы:\n{rew}*Страница 1-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 1) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", parse_mode="Markdown", reply_markup=keyboard1)
+		try: await message.answer(text=f"Отзывы:\n{rew}*Страница 1-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 2) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", parse_mode="Markdown", reply_markup=keyboard1)
 		except: pass
 				
 	#---------------------------------------------------------------------------------------------------
@@ -370,7 +370,7 @@ if not tech_raboty:
 				sum+=int(rev[2])
 				c+=1
 		try:
-			await message.message.edit_text(text=f"Отзывы:\n{rew}*Страница {nowPage+1}-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 1) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", reply_markup=keyboard1, parse_mode="Markdown")
+			await message.message.edit_text(text=f"Отзывы:\n{rew}*Страница {nowPage+1}-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 2) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges", reply_markup=keyboard1, parse_mode="Markdown")
 		except: pass
 	#---------------------------------------------------------------------------------------------------
 	
@@ -417,7 +417,7 @@ if not tech_raboty:
 			keyboard1.row(big_button_4)
 			#listOfClients[id].waitToReview = True
 			#listOfClients[id].ReviewMsg = await message.answer(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.\n*Пожалуйста*, будьте вежливыми и не употребляйте грубые слова и выражения!", parse_mode="Markdown", reply_markup=keyboard1)
-			listOfClients[id].ReviewMsg = await message.answer(text="Окей, теперь оцените работу бота от 0 до 5", parse_mode="Markdown", reply_markup=keyboard1)
+			listOfClients[id].ReviewMsg = await message.answer(text="Окей, теперь оцените работу бота от 1 до 5", parse_mode="Markdown", reply_markup=keyboard1)
 		else: await message.answer(text="Вы забанены в отзывах, напишите в /support и модераторы рассмотрят ваш запрос")
 
 	#---------------------------------------------------------------------------------------------------
@@ -716,7 +716,7 @@ if not tech_raboty:
 		await acceptChoose(message.message)
 
 
-	colour_txt_cu = ["golden", "pwOld", "shblue", "shyellow", "shgreen", "shred", "shpink", "shviolet", "shorange", "shblack", "shwhite", "shgold", "shsilver"]
+	colour_txt_cu = ["golden", "pwOld", "shspace", "shpank", "shbarbie", "shgold", "shsilver"]
 	@dp.callback_query_handler(text=colour_txt_cu)
 	async def from_f(message: CallbackQuery):
 
@@ -826,7 +826,14 @@ if not tech_raboty:
 			return
 		await start_set(message.message)
 
-
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="contacts")
+	async def from_f(message: CallbackQuery):
+		tg = link('Телеграм', 'https://t.me/andcool_systems')
+		ds = link('Дискорд', 'https://discordapp.com/users/812990469482610729/')
+		github = link('Гитхаб', 'https://github.com/AndcoolSystems7')
+		await message.answer()
+		await message.message.answer(f"*Контакты разработчика:*\nAndcoolSystems:\n{tg} - AndcoolSystems\n{ds} - AndcoolSystems\n{github} - AndcoolSystems7", parse_mode="Markdown")
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="resetAccept")
 	async def from_f(message: CallbackQuery):
@@ -858,6 +865,7 @@ if not tech_raboty:
 		if id == -1: 
 			await sessionPizda(message.message)
 			return
+		listOfClients[id].pepeImage = -1
 		msg = await colorDialog(message.message, id)
 		
 		
@@ -908,7 +916,7 @@ if not tech_raboty:
 		await message.message.answer_document(bio)
 		await listOfClients[id].info_id.delete()
 		listOfClients.pop(id)
-		await message.message.answer("Вы можете оставить отзыв, отправив команду /review\nВсе просто общаются в отзывах")
+		await message.message.answer("Вы можете оставить отзыв, отправив команду /review")
 
 	@dp.callback_query_handler(text="doneDeny")
 	async def from_f(message: CallbackQuery):
@@ -1016,29 +1024,13 @@ if not tech_raboty:
 			return
 		
 		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-			text='Синий', callback_data='shblue')
+			text='Космос-повязка*', callback_data='shspace')
 
 		big_button_2: InlineKeyboardButton = InlineKeyboardButton(
-			text='Красный', callback_data='shred')
+			text='Панк-повязка', callback_data='shpank')
 		big_button_3: InlineKeyboardButton = InlineKeyboardButton(
-			text='Зелёный', callback_data='shgreen')
-		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-			text='Жёлтый', callback_data='shyellow')
+			text='Барби-повязка', callback_data='shbarbie')
 		
-		pink_btn: InlineKeyboardButton = InlineKeyboardButton(
-			text='Розовый', callback_data='shpink')
-		
-		violet_btn: InlineKeyboardButton = InlineKeyboardButton(
-			text='Фиолетовый', callback_data='shviolet')
-		
-		orange_btn: InlineKeyboardButton = InlineKeyboardButton(
-			text='Оранжевый', callback_data='shorange')
-		
-		white_btn: InlineKeyboardButton = InlineKeyboardButton(
-			text='Белый', callback_data='shwhite')
-		
-		black_btn: InlineKeyboardButton = InlineKeyboardButton(
-			text='Чёрный', callback_data='shblack')
 		
 		gold: InlineKeyboardButton = InlineKeyboardButton(
 			text='Золотой', callback_data='shgold')
@@ -1056,8 +1048,6 @@ if not tech_raboty:
 
 		keyboard1.row(gold, silver)
 		keyboard1.row(big_button_1, big_button_2, big_button_3)
-		keyboard1.row(big_button_4, pink_btn, violet_btn)
-		keyboard1.row(orange_btn, white_btn, black_btn)
 		keyboard1.row(back)
 		
 
@@ -1068,10 +1058,10 @@ if not tech_raboty:
 		
 		
 		if listOfClients[id].info_id == 0:
-			msg = await message.message.answer("Теперь выбери цвет повязки",
+			msg = await message.message.answer("Теперь выбери цвет повязки\n*Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо",
 																reply_markup=keyboard1)
 		else:
-			msg = await listOfClients[id].info_id.edit_text("Теперь выбери цвет повязки",
+			msg = await listOfClients[id].info_id.edit_text("Теперь выбери цвет повязки\n*Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо",
 																reply_markup=keyboard1)
 		return msg
 	#---------------------------------------------------------------------------------------------------
@@ -1153,7 +1143,7 @@ if not tech_raboty:
 			text='Удаление пикселей над повязкой', callback_data='delete_sw')
 		
 		pass_btn: InlineKeyboardButton = InlineKeyboardButton(
-			text='-', callback_data='passs')
+			text='ㅤ', callback_data='passs')
 		
 		
 		
@@ -1162,14 +1152,23 @@ if not tech_raboty:
 		importpar: InlineKeyboardButton = InlineKeyboardButton(
 			text='Импортировать настройки', callback_data='imp')
 
-		ppt = pepetype_btn if listOfClients[id].pepeImage == -1 else pass_btn
+		
 		# Создаем объект инлайн-клавиатуры
+		
 		keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
-		keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, export)
-		keyboard3.row(info_btn, overlay_btn,     ppt, importpar)
-		keyboard3.row(down_btn, pose_btn,        negative_btn, reset_btn)
-		keyboard3.row(pass_btn, delete_btn,        bw_btn,       bndg_downl)
-		keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
+		if listOfClients[id].pepeImage == -1:
+			keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, export)
+			keyboard3.row(info_btn, overlay_btn,     pepetype_btn, importpar)
+			keyboard3.row(down_btn, pose_btn,        negative_btn, reset_btn)
+			keyboard3.row(pass_btn, delete_btn,        bw_btn,       bndg_downl)
+			keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
+		else:
+			
+			keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, export)
+			keyboard3.row(info_btn, overlay_btn,     negative_btn, importpar)
+			keyboard3.row(down_btn, pose_btn,        bw_btn, reset_btn)
+			keyboard3.row(pass_btn, delete_btn,        pass_btn,       bndg_downl)
+			keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
 		
 
 		

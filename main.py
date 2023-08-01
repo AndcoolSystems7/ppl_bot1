@@ -716,7 +716,7 @@ if not tech_raboty:
 		await acceptChoose(message.message)
 
 
-	colour_txt_cu = ["golden", "pwOld", "shspace", "shpank", "shbarbie", "shgold", "shsilver"]
+	colour_txt_cu = ["golden", "pwOld", "shspace", "shpank", "shbarbie", "shgold", "shsilver", "shrlbl", "shbender"]
 	@dp.callback_query_handler(text=colour_txt_cu)
 	async def from_f(message: CallbackQuery):
 
@@ -1030,6 +1030,12 @@ if not tech_raboty:
 			text='Панк-повязка', callback_data='shpank')
 		big_button_3: InlineKeyboardButton = InlineKeyboardButton(
 			text='Барби-повязка', callback_data='shbarbie')
+
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='Бендер', callback_data='shbender')
+		
+		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+			text='Рилавеон', callback_data='shrlbl')
 		
 		
 		gold: InlineKeyboardButton = InlineKeyboardButton(
@@ -1048,6 +1054,7 @@ if not tech_raboty:
 
 		keyboard1.row(gold, silver)
 		keyboard1.row(big_button_1, big_button_2, big_button_3)
+		keyboard1.row(big_button_4, big_button_5)
 		keyboard1.row(back)
 		
 
@@ -1144,6 +1151,9 @@ if not tech_raboty:
 		
 		pass_btn: InlineKeyboardButton = InlineKeyboardButton(
 			text='ㅤ', callback_data='passs')
+
+		skint: InlineKeyboardButton = InlineKeyboardButton(
+			text='Версия скина', callback_data='skintype')
 		
 		
 		
@@ -1161,14 +1171,14 @@ if not tech_raboty:
 			keyboard3.row(info_btn, overlay_btn,     pepetype_btn, importpar)
 			keyboard3.row(down_btn, pose_btn,        negative_btn, reset_btn)
 			keyboard3.row(pass_btn, delete_btn,        bw_btn,       bndg_downl)
-			keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
+			keyboard3.row(pass_btn, skint,        pass_btn,       donw_btn)
 		else:
 			
 			keyboard3.row(up_btn,   first_layer_btn, bodyPart_btn, export)
 			keyboard3.row(info_btn, overlay_btn,     negative_btn, importpar)
 			keyboard3.row(down_btn, pose_btn,        bw_btn, reset_btn)
 			keyboard3.row(pass_btn, delete_btn,        pass_btn,       bndg_downl)
-			keyboard3.row(pass_btn, pass_btn,        pass_btn,       donw_btn)
+			keyboard3.row(pass_btn, skint,        pass_btn,       donw_btn)
 		
 
 		
@@ -1206,6 +1216,41 @@ if not tech_raboty:
 
 
 
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="skintype")
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+		
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+			text='Стив', callback_data='man_steve')
+
+		big_button_5: InlineKeyboardButton = InlineKeyboardButton(
+			text='Алекс', callback_data='man_alex')
+
+		keyboard1.row(big_button_4, big_button_5)
+		msg = await listOfClients[id].info_id.edit_text("Выберете версию скина:", reply_markup=keyboard1)
+		listOfClients[id].info_id = msg
+	#---------------------------------------------------------------------------------------------------
+
+	@dp.callback_query_handler(text=["man_alex", "man_steve"])
+	async def from_f(message: CallbackQuery):
+		id1 = message.message.chat.id
+		global listOfClients
+		id = client.find_client(listOfClients, message.message.chat.id)
+		if id == -1: 
+			await sessionPizda(message.message)
+			return
+		listOfClients[id].slim_cust = 2 if message.data == "man_alex" else 1
+		listOfClients[id].slim = True if message.data == "man_alex" else False
+		await render_and_edit(message.message, id, id1)
+		await start_set(message.message)
+	
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="exp")
 	async def from_f(message: CallbackQuery):

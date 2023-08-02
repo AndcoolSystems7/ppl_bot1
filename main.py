@@ -31,7 +31,6 @@ import time as time1
 from aiogram.utils.markdown import link
 from io import BytesIO
 import numpy as np
-import random
 import scripts.da as da
 import aioschedule as schedule
 import asyncio
@@ -40,7 +39,6 @@ from aiogram.utils.exceptions import (MessageCantBeDeleted,
 from contextlib import suppress
 import scripts.clientCommands as clientCommands
 import math
-import importlib
 
 if on_server: API_TOKEN = '6121533259:AAHe4O1XP63PtF6RfYf_hJ5QFyMp6J387SU'
 else: API_TOKEN = '5850445478:AAFx4SZdD1IkSWc4h_0qU9IoXyT8VAElbTE'
@@ -86,13 +84,21 @@ if not tech_raboty:
 	else: 
 		badgesListn = np.load("data/badges.npy")
 		badgesList = badgesListn.tolist()
-
+	
 	if os.path.isfile("data/reviews.npy"):
 		reviewsListNp = np.load("data/reviews.npy", allow_pickle=True)
 		reviewsList = reviewsListNp.tolist()
 	else: reviewsList = []
+	#---------------------------------------------------------------------------------------------------
 
-	
+	'''@dp.message_handler(commands=['badgesrelll'])
+	async def send_welcome(message: types.Message):
+		global badgesList
+		n_b=[]
+		for x in badgesList:
+			n_b.append([x[0], x[1], x[1]])
+		badgesList = n_b
+		np.save(arr=np.array(badgesList), file="data/badges.npy")'''
 	reviewsCommandsButt = [f"{'leftRev' if i<len(reviewsList) else 'rightRev'}{i if i<len(reviewsList) else i - len(reviewsList)}" for i in range(len(reviewsList) * 2)]
 	#---------------------------------------------------------------------------------------------------
 
@@ -145,6 +151,9 @@ if not tech_raboty:
 	@dp.message_handler(commands=['badges'])
 	async def send_welcome(message: types.Message):
 		list = da.get_list()
+		global badgesList
+		id1 = message.from_user.id
+		id2 = findBadge(badgesList, id1)
 		balance = 0
 		reviewsListNp = np.load("data/cost.npy")
 		reviewsList1 = reviewsListNp.tolist()
@@ -153,10 +162,12 @@ if not tech_raboty:
 			destr = destrn.tolist()
 		else: destr = []
 		cost = reviewsList1[0]
+		idL = -1
 		if cost != -1:
 			for x in range(len(list)):
 				if int(list[x][2]) == message.from_user.id:
 					balance = float(list[x][1])
+					idL = x
 					break
 			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} *RUB*\nВаш баланс: {balance} *RUB*\nПополнить баланс можно отправив /donate", parse_mode="Markdown")
 			else: 
@@ -165,16 +176,25 @@ if not tech_raboty:
 
 				deny: InlineKeyboardButton = InlineKeyboardButton(
 				text='Отмена', callback_data='denyBadge')
+				if id2 != -1:
+					delbad: InlineKeyboardButton = InlineKeyboardButton(
+					text='Убрать бадж*', callback_data='delbad')
+
+					relbad: InlineKeyboardButton = InlineKeyboardButton(
+					text=f'Установить бадж {badgesList[id2][2]}', callback_data='relbad')
 
 					# Создаем объект инлайн-клавиатуры
 				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
+
+				if id2 != -1: keyboard1.row(relbad, delbad)
 				keyboard1.row(pay, deny)
 				costTxt = f"{cost} *RUB*" if cost != 0 else "*Бесплатно*"
-				txt1 = f'*Купить бадж*\n\nСтоимость баджа: {costTxt}\nНа вашем балансе достаточно средств: {float(list[x][1])} *RUB*\n'
+				txt1 = f'*Купить бадж*\n\nСтоимость баджа: {costTxt}\nНа вашем балансе достаточно средств: {float(list[idL][1]) if idL != -1 else 0} *RUB*\n'
 				txt2 = 'Eсли вы готовы купить бадж, нажмите кнопку *"Купить"* ниже, сумма будет списана с вашего баланса. '
 				txt3 = 'Если у вас уже есть бадж, после покупки нового он будет заменён.\n*Баджем считается 1 эмодзи, поддерживаемый Телеграмом.*'
-				await message.answer(text=txt1+txt2+txt3,
+				txt4 = '\n\n\*Нажимая кнопку убрать бадж вы убираете его, но всегда можете вернуть нажав кнопку "Установить бадж"' if id2 != -1 else ""
+				await message.answer(text=txt1+txt2+txt3+txt4,
 				reply_markup=keyboard1, parse_mode="Markdown")
 
 				if destr != []:
@@ -189,8 +209,29 @@ if not tech_raboty:
 		else: await message.answer(text=f"В данный момент продажа баджей приостановлена😔\nВозвращайтесь позже")
 
 
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="delbad")
+	async def pay(message: CallbackQuery):
+		try:
+			global badgesList
+			id1 = message.from_user.id
+			id2 = findBadge(badgesList, id1)
+			badgesList[id2][1] = ""
+			await message.answer(text='Бадж убран!\nВы всегда можете его вернуть отправив /badges и нажав кнопку "Установить бадж"')
+		except Exception as e:
+			await message.answer(text=e)
 
-
+	#---------------------------------------------------------------------------------------------------
+	@dp.callback_query_handler(text="relbad")
+	async def pay(message: CallbackQuery):
+		try:
+			global badgesList
+			id1 = message.from_user.id
+			id2 = findBadge(badgesList, id1)
+			badgesList[id2][1] = badgesList[id2][2]
+			await message.answer(text='Бадж установлен!')
+		except Exception as e:
+			await message.answer(text=e)
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="payDestr")
 	async def pay(message: CallbackQuery):
@@ -205,8 +246,10 @@ if not tech_raboty:
 			if destr[0] != "-1":			
 				id2 = findBadge(badgesList, id)
 								
-				if id2 == -1: badgesList.append([int(id), destr[0]])
-				else: badgesList[id2][1] = destr[0]
+				if id2 == -1: badgesList.append([int(id), destr[0], destr[0]])
+				else: 
+					badgesList[id2][1] = destr[0]
+					badgesList[id2][2] = destr[0]
 				np.save(arr=np.array(badgesList), file="data/badges.npy")
 				reloadBadge()
 				await message.message.answer(text="Бадж установлен!\n*Добро пожаловать в клуб!* 👋", parse_mode="Markdown")
@@ -433,10 +476,13 @@ if not tech_raboty:
 		starsId = ['s0', 's1', 's2', 's3', 's4', 's5']
 		stars = [0, 1, 2, 3, 4, 5]
 		star = stars[starsId.index(message.data)]
-		reviewsList.insert(0, ["", 0, star])
-		listOfClients[id].waitToReview = len(reviewsList)
 		
-		await listOfClients[id].ReviewMsg.edit_text(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.\n*Пожалуйста*, будьте вежливыми и не употребляйте грубые слова и выражения!", parse_mode="Markdown")
+		listOfClients[id].waitToReview = star
+		big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+				text='Отмена', callback_data='reviewDeny')
+		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+		keyboard1.row(big_button_4)
+		await listOfClients[id].ReviewMsg.edit_text(text="Окей, теперь отправьте *одно* сообщение - ваш отзыв.\n*Пожалуйста*, будьте вежливыми и не употребляйте грубые слова и выражения!", parse_mode="Markdown", reply_markup=keyboard1)
 	#---------------------------------------------------------------------------------------------------
 	@dp.callback_query_handler(text="reviewDeny")
 	async def from_f(message: CallbackQuery):
@@ -1550,9 +1596,11 @@ if not tech_raboty:
 						if cost != -1: paySucsess = da.pay(int(id1), float(cost))
 									
 						if paySucsess:
-							if id2 == -1: badgesList.append([int(id1), message.text])
+							if id2 == -1: badgesList.append([int(id1), message.text, message.text])
 
-							else: badgesList[id2][1] = message.text
+							else: 
+								badgesList[id2][1] = message.text
+								badgesList[id2][2] = message.text
 							np.save(arr=np.array(badgesList), file="data/badges.npy")
 							reloadBadge()
 							listOfClients[id].waitToBadge = False
@@ -1569,7 +1617,7 @@ if not tech_raboty:
 			global reviewsList
 			badgeId = findBadge(badgesList, int(message.from_user.id))
 			emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
-			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}{emoji1}* оставил отзыв:\n{message.text}\n{reviewsList[len(reviewsList) - int(listOfClients[id].waitToReview)][2]} Звезды\nЕго id: {message.from_user.id}", parse_mode="Markdown")
+			await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}{emoji1}* оставил отзыв:\n{message.text}\n{listOfClients[id].waitToReview} Звезды\nЕго id: {message.from_user.id}", parse_mode="Markdown")
 
 			await message.answer("Спасибо за отзыв!\nПосмотреть список всех отзывов можно отправив /reviews")
 			now_time_log = datetime.now(pytz.timezone('Etc/GMT-3'))
@@ -1581,7 +1629,7 @@ if not tech_raboty:
 												now_time_log.minute)
 			
 
-			reviewsList[len(reviewsList) - int(listOfClients[id].waitToReview)] = [f"{now_time_format}:*\n{message.text}", message.from_user.id, reviewsList[len(reviewsList) - int(listOfClients[id].waitToReview)][2]]
+			reviewsList.insert(0, [f"{now_time_format}:*\n{message.text}", message.from_user.id, int(listOfClients[id].waitToReview)])
 			await listOfClients[id].ReviewMsg.delete()
 			global reviewsCommandsButt
 			reviewsCommandsButt = [f"{'leftRev' if i<len(reviewsList) else 'rightRev'}{i if i<len(reviewsList) else i - len(reviewsList)}" for i in range(len(reviewsList) * 2)]

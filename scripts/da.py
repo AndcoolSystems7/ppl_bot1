@@ -5,20 +5,13 @@ import numpy
 import os
 from io import BytesIO
 from PIL import Image
-# Configure logging
-#logging.basicConfig(level=logging.INFO)
 
-# Initialize bot and dispatcher
+
 
 alert = daa.Alert("jCzYqIMrhfX1cn3GeK3B")
 alerting_id = -1
 if not os.path.isfile("data/donations.npy"):
-    donateList = [["ReZoort", 501.0, 1017884431, 501.0],
-                  ["veel1en", 400.99, 1084649863, 400.99],
-                  ["rorik", 350.0, 1418299420, 350.0],
-                  ["ModErator5937", 485.0, 1255297867, 485.0],
-                  ["Гамдав", 50.0, 995824148, 50.0]
-                ]
+    donateList = []
     numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
 else: 
     donateList_npy = numpy.load("data/donations.npy")

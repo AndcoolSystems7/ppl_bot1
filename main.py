@@ -1,7 +1,5 @@
 """
-Pepeland bandage bot
 Проект защищён авторским правом
-created by AndcoolSystems, 2023©
 """
 tech_raboty = False
 import logging
@@ -169,7 +167,20 @@ if not tech_raboty:
 					balance = float(list[x][1])
 					idL = x
 					break
-			if balance < cost: await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} *RUB*\nВаш баланс: {balance} *RUB*\nПополнить баланс можно отправив /donate", parse_mode="Markdown")
+			if balance < cost: 
+				if id2 != -1:
+					delbad: InlineKeyboardButton = InlineKeyboardButton(
+					text='Убрать бадж*', callback_data='delbad')
+
+					relbad: InlineKeyboardButton = InlineKeyboardButton(
+					text=f'Установить бадж {badgesList[id2][2]}', callback_data='relbad')
+
+					# Создаем объект инлайн-клавиатуры
+				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+
+				if id2 != -1: keyboard1.row(relbad, delbad)
+				await message.answer(text=f"На вашем балансе недостаточно средств\nСтоимость баджа: {cost} *RUB*\nВаш баланс: {balance} *RUB*\nПополнить баланс можно отправив /donate", parse_mode="Markdown", reply_markup=keyboard1)
 			else: 
 				pay: InlineKeyboardButton = InlineKeyboardButton(
 				text='Купить', callback_data='payBadge')
@@ -197,16 +208,17 @@ if not tech_raboty:
 				await message.answer(text=txt1+txt2+txt3+txt4,
 				reply_markup=keyboard1, parse_mode="Markdown")
 
-				if destr != []:
-					if destr[0] != "-1":
-						payDestr: InlineKeyboardButton = InlineKeyboardButton(
-							text=f'Установить бадж "{destr[0]}"', callback_data='payDestr')
-						keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
-
-						keyboard1.row(payDestr)
-						await message.answer(text=destr[1],
-							reply_markup=keyboard1, parse_mode="Markdown")
 		else: await message.answer(text=f"В данный момент продажа баджей приостановлена😔\nВозвращайтесь позже")
+
+		if destr != []:
+			if destr[0] != "-1":
+				payDestr: InlineKeyboardButton = InlineKeyboardButton(
+					text=f'Установить бадж "{destr[0]}"', callback_data='payDestr')
+				keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+				keyboard1.row(payDestr)
+				await message.answer(text=destr[1],
+					reply_markup=keyboard1, parse_mode="Markdown")
 
 
 	#---------------------------------------------------------------------------------------------------

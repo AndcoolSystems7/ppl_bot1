@@ -216,8 +216,10 @@ def init(bot, dp, on_server):
 				badgesList = badgesListn.tolist()
 
 				id1 = findBadge(badgesList, id)
-				if id1 == -1: badgesList.append([int(id), em])
-				else: badgesList[id1][1] = em
+				if id1 == -1: badgesList.append([int(id), em, em])
+				else: 
+					badgesList[id1][1] = em
+					badgesList[id1][2] = em
 
 				np.save(arr=np.array(badgesList), file="data/badges.npy")
 				

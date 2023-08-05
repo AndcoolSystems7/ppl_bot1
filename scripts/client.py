@@ -163,8 +163,8 @@ def to64(skin):
     return new_img
 
 class Client:
-    def __init__(self, chat_id):
-        self.chat_id = chat_id
+    def __init__(self, chatId):
+        self.chat_id = chatId
         self.slim = None
         self.slim_cust = 0
         self.mc_class = None

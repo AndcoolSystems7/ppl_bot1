@@ -265,6 +265,7 @@ if not tech_raboty:
 				np.save(arr=np.array(badgesList), file="data/badges.npy")
 				reloadBadge()
 				await message.message.answer(text="Бадж установлен!\n*Добро пожаловать в клуб!* 👋", parse_mode="Markdown")
+				await bot.send_message(chat_id=-1001980044675, text=f"*{message.from_user.username}* установил бадж {destr[0]}", parse_mode="Markdown")
 			else: await message.message.answer(text="Сейчас баджи не раздаются", parse_mode="Markdown")
 		else: await message.message.answer(text="Сейчас баджи не раздаются", parse_mode="Markdown")
 	#---------------------------------------------------------------------------------------------------

@@ -27,6 +27,8 @@ def init(bot1, dp1):
     dp = dp1
 da_event = -1
 
+
+
 def sortir(donateList):
     for x_s in range(len(donateList)):
         for x in range(len(donateList) - 1):

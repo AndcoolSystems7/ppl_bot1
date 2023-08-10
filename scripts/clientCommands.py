@@ -70,6 +70,7 @@ def init(bot, dp, on_server):
 		link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
 		link2 = link('сайт', 'https://pplbandagebot.ru')
 		link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
+		text7 = '\n\n*ЭТОТ БОТ НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ [ПРОДУКТОМ/УСЛУГОЙ/СОБЫТИЕМ И т.п.] MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С КОМПАНИЕЙ MOJANG ИЛИ MICROSOFT*'
 
 		text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
 		if on_server:
@@ -78,7 +79,7 @@ def init(bot, dp, on_server):
 			text5 = f"Версия *{ver}*\n"
 			f.close()
 		else: text5 = ""
-		text4 = f"*Created by AndcoolSystems*\nПродакшн: {link4}" #Продакшн: {link4}
+		text4 = f"*Created by AndсоolSystems*\nПродакшн: {link4}" #Продакшн: {link4}
 		donate_text = ""
 		if os.path.isfile("data/donations.npy"):
 			donate_text = "\n\nЛюди, поддержавшие проект:\n"
@@ -110,7 +111,7 @@ def init(bot, dp, on_server):
 
 		keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
 			inline_keyboard=[[big_button_5]])
-		await message.reply_photo(bio, caption=text1+text2+text3+text6+text5+text4+donate_text, parse_mode='Markdown', reply_markup=keyboard1)
+		await message.reply_photo(bio, caption=text1+text2+text3+text6+text5+text4+donate_text+text7, parse_mode='Markdown', reply_markup=keyboard1)
 
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['changelog'])

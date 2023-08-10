@@ -384,7 +384,7 @@ class Client:
     
     
     
-def find_client(list, chat_id):
+"""def find_client(list, chat_id):
     if list == []: id = -1
     else:
         finded = False
@@ -395,4 +395,10 @@ def find_client(list, chat_id):
                 break
         if not finded: 
             id = -1
-    return id
+    return id"""
+
+def find_client(list, chat_id):
+    for num, i in enumerate(list):
+        if i.chat_id == chat_id:
+            return num
+    return -1

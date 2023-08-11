@@ -1,5 +1,5 @@
 
-from minepi import Player
+from minepi import Player, Skin
 from PIL import Image, ImageEnhance, ImageFont, ImageDraw, ImageOps
 from os import listdir
 from os.path import isfile, join
@@ -60,9 +60,9 @@ def fill(img, colour):
     return rgb_im
 
 
-def clear(img, pos):
+def clear(img, pos, width):
     rgb_im = img.convert('RGBA')
-    w, h = 16, 4
+    w, h = 16, width
     pos_x, pos_y = pos
     for y in range(h):
         for x in range(w):
@@ -87,16 +87,16 @@ def paste_trans(img, shadow):
             except: pass
     return rgb_im
 
-def crop(img, abs, slim):
+def crop(img, abs, slim, height):
 
     image = Image.open(img).convert("RGBA")
-    if slim and (abs == 0 or abs == 2): image_o = image.crop((0, 0, 15, 5))
+    if slim and (abs == 0 or abs == 2): image_o = image.crop((0, 0, 15, height+1))
     else: image_o = image.copy()
 
     if abs > 1:
-        img_left = image_o.crop((0, 0, 8, 4))
-        img_right = image_o.crop((8, 0, 16, 4))
-        image_o = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
+        img_left = image_o.crop((0, 0, 8, height))
+        img_right = image_o.crop((8, 0, 16, height))
+        image_o = Image.new('RGBA', (16, height), (0, 0, 0, 0))
         image_o.paste(img_right, (0, 0), img_right)
         image_o.paste(img_left, (8 if not (slim and (abs == 0 or img == "res/pepes/pepe1.png" or abs == 2)) else 6, 0), img_left)
 
@@ -196,6 +196,8 @@ class Client:
         self.absolute_pos = 0
         self.delete_pix = True
         self.pepe_type = 0
+        self.bandageRange = 8
+        self.bandageHeight = 4
     
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
@@ -317,28 +319,28 @@ class Client:
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
 
-            if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos))
+            if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), self.bandageHeight)
 
 
 
-            if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim)
-            else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim)
+            if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim, self.bandageHeight)
+            else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim, self.bandageHeight)
             
             if self.pepeImage == -1: img = fill(img.copy(), self.colour)
             
             sl = self.slim and (self.absolute_pos == 0)
-            if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)
-            if self.overlay: self.skin_raw.paste(img.crop((1, 0, 16, 4)) if sl else img, (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), img.crop((1, 0, 16, 4)) if sl else img)
+            if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, self.bandageHeight)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, self.bandageHeight)) if sl else img)
+            if self.overlay: self.skin_raw.paste(img.crop((1, 0, 16, self.bandageHeight)) if sl else img, (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), img.crop((1, 0, 16, self.bandageHeight)) if sl else img)
 
             
-            bond = Image.new('RGBA', (16, 4), (0, 0, 0, 0))
+            bond = Image.new('RGBA', (16, self.bandageHeight), (0, 0, 0, 0))
             if self.first_layer == 1: 
                 if self.pepeImage == -1: 
                     img_lining = Image.open("res/lining/custom.png")
                     img_lining = fill(img_lining.copy(), self.colour)
-                else: img_lining = crop(f"res/lining/colored/{self.pepeImage}.png", self.absolute_pos, self.slim)
+                else: img_lining = crop(f"res/lining/colored/{self.pepeImage}.png", self.absolute_pos, self.slim, self.bandageHeight)
                 
-                self.skin_raw.paste(img_lining.crop((2 if self.pepeImage == -1 else 1, 0, 16, 4)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((2 if self.pepeImage == -1 else 1, 0, 16, 4)) if sl else img_lining)
+                self.skin_raw.paste(img_lining.crop((2 if self.pepeImage == -1 else 1, 0, 16, self.bandageHeight)) if sl else img_lining, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img_lining.crop((2 if self.pepeImage == -1 else 1, 0, 16, self.bandageHeight)) if sl else img_lining)
                 bond.paste(img_lining, (0, 0), img_lining)
             bond.paste(img, (0, 0), img)
             self.bandage = bond
@@ -350,12 +352,12 @@ class Client:
             self.skin_raw = transparent_negative(self.skin_raw)
     
         #render_image = paste_trans(self.skin_raw.copy(), Image.open("res/shadow.png"))
-        self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
-        await self.mc_class.initialize()
-
+        #self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
+        #await self.mc_class.initialize()
+        skin = Skin(self.skin_raw)
 
         
-        await self.mc_class.skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
+        img = await skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
                                              vr=-20, 
                                              ratio = 32, 
                                              vrc = 15, 
@@ -373,7 +375,7 @@ class Client:
         self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))
         self.skin_raw.putpixel((3, 0), (0, 0, 255, 255))
 
-        img = self.mc_class.skin.skin
+        
         width, height = img.size
         
         renderBack = Image.new(mode="RGBA", size=(height + 40, height + 40), color=(255, 255, 255, 255))
@@ -383,19 +385,7 @@ class Client:
         return renderBack
     
     
-    
-"""def find_client(list, chat_id):
-    if list == []: id = -1
-    else:
-        finded = False
-        for add in range(len(list)):
-            if list[add].chat_id == chat_id:
-                finded = True
-                id = add
-                break
-        if not finded: 
-            id = -1
-    return id"""
+
 
 def find_client(list, chat_id):
     for num, i in enumerate(list):

@@ -1042,6 +1042,7 @@ if not tech_raboty:
         "shsilver",
         "shrlbl",
         "shbender",
+        "moderator"
     ]
 
     @dp.callback_query_handler(text=colour_txt_cu)
@@ -1057,7 +1058,12 @@ if not tech_raboty:
 
         listOfClients[id].pepeImage = colour_txt_cu.index(message.data)
         listOfClients[id].colour = (0, 0, 0)
-
+        
+        image = Image.open(f"res/pepes/colored/{colour_txt_cu.index(message.data)}.png").convert("RGBA")
+        w, h = image.size
+        listOfClients[id].bandageHeight = h
+        listOfClients[id].bandageRange = 12 - h
+        listOfClients[id].pos = (12 - h) // 2
         await render_and_edit(message.message, id, id1)
         await acceptChoose(message.message)
 
@@ -1420,13 +1426,17 @@ if not tech_raboty:
             text="Серебряный", callback_data="shsilver"
         )
 
+        moder: InlineKeyboardButton = InlineKeyboardButton(
+            text="ModErator**", callback_data="moderator"
+        )
+
         back: InlineKeyboardButton = InlineKeyboardButton(
             text="Назад", callback_data="colourShapeBack"
         )
         # Создаем объект инлайн-клавиатуры
         keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
-        keyboard1.row(gold, silver)
+        keyboard1.row(gold, moder, silver)
         keyboard1.row(big_button_1, big_button_2, big_button_3)
         keyboard1.row(big_button_4, big_button_5)
         keyboard1.row(back)
@@ -1434,16 +1444,14 @@ if not tech_raboty:
         back: InlineKeyboardButton = InlineKeyboardButton(
             text="Назад", callback_data="colourShapeBack"
         )
-
+        text = """Теперь выбери цвет повязки\n
+*Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо\n
+**Повязка сделанная по идее скина топ донатера ModErator5937"""
         if listOfClients[id].info_id == 0:
-            msg = await message.message.answer(
-                "Теперь выбери цвет повязки\n*Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо",
-                reply_markup=keyboard1,
+            msg = await message.message.answer(text,reply_markup=keyboard1,
             )
         else:
-            msg = await listOfClients[id].info_id.edit_text(
-                "Теперь выбери цвет повязки\n*Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо",
-                reply_markup=keyboard1,
+            msg = await listOfClients[id].info_id.edit_text(text,reply_markup=keyboard1,
             )
         return msg
 
@@ -1487,7 +1495,7 @@ if not tech_raboty:
         )
 
         info_btn: InlineKeyboardButton = InlineKeyboardButton(
-            text=f"{listOfClients[id].pos}/8", callback_data="no"
+            text=f"{listOfClients[id].pos}/{listOfClients[id].bandageRange}", callback_data="no"
         )
 
         down_btn: InlineKeyboardButton = InlineKeyboardButton(
@@ -1535,7 +1543,7 @@ if not tech_raboty:
         )
 
         delete_btn: InlineKeyboardButton = InlineKeyboardButton(
-            text="Удаление пикселей над повязкой", callback_data="delete_sw"
+            text="*Удаление пикселей над повязкой", callback_data="delete_sw"
         )
 
         pass_btn: InlineKeyboardButton = InlineKeyboardButton(
@@ -1556,19 +1564,15 @@ if not tech_raboty:
         # Создаем объект инлайн-клавиатуры
 
         keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
-        if listOfClients[id].pepeImage == -1:
-            keyboard3.row(up_btn, first_layer_btn, bodyPart_btn, export)
-            keyboard3.row(info_btn, overlay_btn, pepetype_btn, importpar)
-            keyboard3.row(down_btn, pose_btn, negative_btn, reset_btn)
-            keyboard3.row(pass_btn, delete_btn, bw_btn, bndg_downl)
-            keyboard3.row(pass_btn, skint, pass_btn, donw_btn)
-        else:
+       
 
-            keyboard3.row(up_btn, first_layer_btn, bodyPart_btn, export)
-            keyboard3.row(info_btn, overlay_btn, negative_btn, importpar)
-            keyboard3.row(down_btn, pose_btn, bw_btn, reset_btn)
-            keyboard3.row(pass_btn, delete_btn, pass_btn, bndg_downl)
-            keyboard3.row(pass_btn, skint, pass_btn, donw_btn)
+
+        keyboard3.row(up_btn, first_layer_btn, pass_btn)
+        keyboard3.row(info_btn, overlay_btn, export)
+        keyboard3.row(down_btn, pose_btn, importpar)
+        keyboard3.row(delete_btn, bodyPart_btn, reset_btn)
+        keyboard3.row(skint, negative_btn, bndg_downl)
+        keyboard3.row(pepetype_btn if listOfClients[id].pepeImage == -1 else pass_btn, bw_btn, donw_btn)
 
         listOfClients[id].change_e = not listOfClients[id].change_e
         listOfClients[id].delete_mess = True
@@ -1595,7 +1599,7 @@ if not tech_raboty:
         txt4 = f"*Первый слой:* {txt13}\n"
         txt5 = f"*Чёрно-б{e}лый:* {txt14}\n"
         txt6 = f"*Негатив:* {txt15}\n"
-        txt8 = f"*Удаление пикселей над повязкой:* {txt16}\n"
+        txt8 = f"\**Удаление пикселей над повязкой:* {txt16}\n"
 
         try:
 
@@ -1799,7 +1803,7 @@ if not tech_raboty:
         if id == -1:
             await sessionPizda(message.message)
             return
-        if listOfClients[id].pos < 8:
+        if listOfClients[id].pos < listOfClients[id].bandageRange:
             listOfClients[id].pos += 1
 
         await render_and_edit(message.message, id, id1)

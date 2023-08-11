@@ -122,7 +122,7 @@ def init(bot, dp, on_server):
 		f.close()
 
 		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-			text='Полный список обновлений', url="http://pplbandagebot.ru/changelog.html")
+			text='Полный список обновлений', url="http://pplbandagebot.ru/changelog")
 
 		keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
 			inline_keyboard=[[big_button_1]])

@@ -29,6 +29,7 @@ api = Api(app)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 notAlowed = {
+	"status": "error",
 	"message": "The method is not allowed for the requested URL."
     }
     
@@ -74,90 +75,14 @@ async def load(id_):
 		img_str = base64.b64encode(buffered.getvalue())
 
 		
-		return img_str, new_name
+		return img_str, new_name, member.user.username
 	else:
-		return None, new_name
+		return None, new_name, member.user.username
 	
 class Quote(Resource):
 	@limiter.limit("10/second")
 	def get(self, id="0", method=None):
 		if method == None: return "Welcome to pplbandagebot api", 200
-
-		"""if method == "donated":
-			donateList_npy = np.load("data/donations.npy")
-			list = donateList_npy.tolist()
-			finded = False
-			for x in range(len(list)):
-				if str(list[x][2]) == id:
-					name = list[x][0]
-					balance = list[x][1]
-					balance_max = list[x][3]
-					finded = True
-					break
-			if not finded: return {"message": "User not found"}, 404
-			answer = {
-				"user_id": id,
-				"donate_name": name,
-				"balance": balance,
-				"balance_max": balance_max
-			}
-
-			return answer, 200"""
-            
-		
-		if method == "login": 
-			if id != "0": 
-				if os.path.isfile("data/sessions.sess"):
-					with open('data/sessions.sess', 'rb') as fp:
-						dict = pickle.load(fp)
-				else: dict = {}
-				for x in dict:
-					if dict[x] == id:
-						return {"message": "Success", "id": x, "token": dict[x]}, 200
-				return {"message": "User not found"}, 404
-			else: return notAlowed, 404
-
-		if method == "load": 
-			if id != "0": 
-				if os.path.isfile("data/sessions.sess"):
-					with open('data/sessions.sess', 'rb') as fp:
-						dict = pickle.load(fp)
-				else: dict = {}
-				for x in dict:
-					if dict[x] == id:
-						global loop
-						future = asyncio.run_coroutine_threadsafe(load(x), loop)
-						photo = str(future.result()[0].decode("utf-8") if future.result()[0] != None else None)
-
-						donateList_npy = np.load("data/donations.npy")
-						dlist = donateList_npy.tolist()
-						balance = 0
-						
-						for xx in range(len(dlist)):
-							if int(dlist[xx][2]) == int(x):
-								name = dlist[xx][0]
-								balance = dlist[xx][1]
-								balance_max = dlist[xx][3]
-								break
-
-						badgesListn = np.load("data/badges.npy")
-						badgesList = badgesListn.tolist()
-
-						badgeId = findBadge(badgesList, int(x))
-						emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
-								
-						
-
-
-						return {"message": "Success", 
-	      						"balance": balance,
-							    "badge": emoji1,
-	      						"name": str(future.result()[1]),
-								"data": photo}, 200
-				return {"message": "User not found"}, 404
-			
-      
-			else: return notAlowed, 404
 
 		if method == "logout": 
 			if id != "0": 
@@ -170,12 +95,76 @@ class Quote(Resource):
 						dict.pop(x)
 						with open('data/sessions.sess', 'wb') as fp:
 							pickle.dump(dict, fp)
-						return {"message": "Success"}, 200
-				return {"message": "User not found"}, 404
+						return {"status": "success"}, 200
+				return {"status": "error", "message": "User not found"}, 404
 			
 
-			else: return notAlowed, 404
-		return notAlowed, 404
+			else: return notAlowed, 405
+		return notAlowed, 405
+
+
+	def post(self, id="0", method=None):
+		if method == "login":
+			if id != "0": return notAlowed, 405
+
+			parser = reqparse.RequestParser()
+			parser.add_argument("oauth-token")
+			params = parser.parse_args()
+
+
+			if os.path.isfile("data/sessions.sess"):
+				with open('data/sessions.sess', 'rb') as fp:
+					dict = pickle.load(fp)
+			else: dict = {}
+
+			for x in dict:
+				if str(dict[x]) == str(params["oauth-token"]):
+					return {"status": "success", "token": dict[x]}, 200
+			return {"status": "error", "message": "User not found"}, 404
+		
+		if method == "load": 
+			parser = reqparse.RequestParser()
+			parser.add_argument("oauth-token")
+			params = parser.parse_args()
+			
+			if os.path.isfile("data/sessions.sess"):
+				with open('data/sessions.sess', 'rb') as fp:
+					dict = pickle.load(fp)
+			else: dict = {}
+			for x in dict:
+				if str(dict[x]) == str(params["oauth-token"]):
+					global loop
+					future = asyncio.run_coroutine_threadsafe(load(x), loop)
+					photo = str(future.result()[0].decode("utf-8") if future.result()[0] != None else None)
+
+					donateList_npy = np.load("data/donations.npy")
+					dlist = donateList_npy.tolist()
+					balance = 0
+						
+					for xx in range(len(dlist)):
+						if int(dlist[xx][2]) == int(x):
+							name = dlist[xx][0]
+							balance = dlist[xx][1]
+							balance_max = dlist[xx][3]
+							break
+
+					badgesListn = np.load("data/badges.npy")
+					badgesList = badgesListn.tolist()
+
+					badgeId = findBadge(badgesList, int(x))
+					emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
+								
+						
+
+
+					return {"status": "success",
+	      					"balance": balance,
+							"badge": emoji1,
+	      					"name": str(future.result()[1]),
+						    "username": str(future.result()[2]),
+							"data": photo}, 200
+			return {"status": "error", "message": "User not found"}, 404
+		return notAlowed, 405
 
     
 api.add_resource(Quote, 

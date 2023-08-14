@@ -137,17 +137,16 @@ def init(bot, dp, on_server):
 		bio = BytesIO()
 		bio.name = f'{id}.png'
 		img.save(bio, 'PNG')
-		bio.seek(0)"""
+		bio.seek(0)
 	
 		big_button_1: InlineKeyboardButton = InlineKeyboardButton(
 			text='DonationAlerts', url="https://www.donationalerts.com/r/andcool_systems")
 
 		keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
 			inline_keyboard=[[big_button_1]])
-		"""await message.answer_photo(photo=bio, caption=f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число *{message.from_user.id}*, а затем, через пробел оставьте своё сообщение.",
-												reply_markup=keyboard, parse_mode="Markdown")"""
 		text = f"Вы можете поддержать разработчиков бота, отправив донат через сервис DonationAlerts\nВ начале сообщения к донату оставьте число `{message.from_user.id}` *\(нажмите по числу для копирования\)*, а затем, через пробел оставьте своё сообщение\.\nDonationAlerts иногда не видит пришедшие донаты, поэтому если через 2\-3 минуты донат не пришёл обращайтесь в /support"
-		await message.answer(text, reply_markup=keyboard, parse_mode="MarkdownV2")
+		"""
+		await message.answer("Извините, в данный момент по техническим причинам возможность доната отключена")
 
 
 	#---------------------------------------------------------------------------------------------------

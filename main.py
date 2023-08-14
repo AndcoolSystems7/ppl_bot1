@@ -7,7 +7,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 try:
     import replit
-
     on_server = True
 except:
     on_server = False
@@ -87,14 +86,7 @@ if not tech_raboty:
     clientCommands.init(bot, dp, on_server)
     andcool_id = -1001980044675
     if not os.path.isfile("data/badges.npy"):
-        badgesList = [
-            [1197005557, "✓ 🤨"],
-            [1017884431, "🍉"],
-            [2126292175, "🤓"],
-            [1746757903, "🦾"],
-            [1255297867, "👑"],
-            [1539634122, "🦊"],
-        ]
+        badgesList = []
         np.save(arr=np.array(badgesList), file="data/badges.npy")
     else:
         badgesListn = np.load("data/badges.npy")
@@ -720,12 +712,28 @@ if not tech_raboty:
                 listOfClients.append(client.Client(message.chat.id))
 
         id = client.find_client(listOfClients, message.chat.id)
+        big_button_4: InlineKeyboardButton = InlineKeyboardButton(
+            text="Отмена", callback_data="supportDeny"
+        )
+        keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+        keyboard1.row(big_button_4)
 
         listOfClients[id].wait_to_support = True
         await message.answer(
             text="Окей, теперь отправь *одно* сообщение (можно фото с подписью), где описываете вашу проблему или вопрос.",
-            parse_mode="Markdown",
+            parse_mode="Markdown", reply_markup=keyboard1
         )
+
+    # ---------------------------------------------------------------------------------------------------
+    @dp.callback_query_handler(text="supportDeny")
+    async def from_f(message: CallbackQuery):
+        global listOfClients
+        id = client.find_client(listOfClients, message.message.chat.id)
+        if id == -1:
+            await sessionPizda(message.message)
+            return
+        listOfClients[id].wait_to_support = False
+        await message.message.delete()
 
     # ---------------------------------------------------------------------------------------------------
     async def render_and_edit(message, id, id1):
@@ -1132,11 +1140,11 @@ if not tech_raboty:
             await sessionPizda(message)
             return
         big_button_4: InlineKeyboardButton = InlineKeyboardButton(
-            text="Подтвердить выбор цвета", callback_data="done_d"
+            text="Подтвердить выбор стиля", callback_data="done_d"
         )
 
         big_button_5: InlineKeyboardButton = InlineKeyboardButton(
-            text="Изменить цвет", callback_data="colD"
+            text="Изменить стиль", callback_data="colD"
         )
 
         keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup(
@@ -1198,7 +1206,7 @@ if not tech_raboty:
             await sessionPizda(message.message)
             return
 
-        listOfClients[id].pos = 4
+        listOfClients[id].pos = (12 - listOfClients[id].bandageHeight) // 2
         listOfClients[id].overlay = True
         listOfClients[id].bw = False
         listOfClients[id].negative = False
@@ -1369,11 +1377,11 @@ if not tech_raboty:
 
         if listOfClients[id].info_id == 0:
             msg = await message.answer(
-                "Теперь выбери цвет повязки", reply_markup=keyboard1
+                "Теперь выбери стиль повязки", reply_markup=keyboard1
             )
         else:
             msg = await listOfClients[id].info_id.edit_text(
-                "Теперь выбери цвет повязки", reply_markup=keyboard1
+                "Теперь выбери стиль повязки", reply_markup=keyboard1
             )
         return msg
 
@@ -1400,7 +1408,7 @@ if not tech_raboty:
             return
 
         big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-            text="Космос-повязка*", callback_data="shspace"
+            text="*Космос-повязка", callback_data="shspace"
         )
 
         big_button_2: InlineKeyboardButton = InlineKeyboardButton(
@@ -1427,7 +1435,7 @@ if not tech_raboty:
         )
 
         moder: InlineKeyboardButton = InlineKeyboardButton(
-            text="ModErator**", callback_data="moderator"
+            text="**ModErator", callback_data="moderator"
         )
 
         back: InlineKeyboardButton = InlineKeyboardButton(
@@ -1444,9 +1452,9 @@ if not tech_raboty:
         back: InlineKeyboardButton = InlineKeyboardButton(
             text="Назад", callback_data="colourShapeBack"
         )
-        text = """Теперь выбери цвет повязки\n
+        text = """Теперь выбери стиль повязки\n
 *Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо\n
-**Повязка сделанная по идее скина топ донатера ModErator5937"""
+**Повязка сделанна по идее скина топ донатера ModErator5937"""
         if listOfClients[id].info_id == 0:
             msg = await message.message.answer(text,reply_markup=keyboard1,
             )
@@ -2119,6 +2127,20 @@ if not tech_raboty:
                     except:
                         pass
                     await message.delete()
+
+                    secret = ["special-pepehill", "special-heart"]
+                    if message.text in secret:
+                        listOfClients[id].pepeImage = str(message.text)
+                        listOfClients[id].colour = (0, 0, 0)
+                        
+                        image = Image.open(f"res/pepes/colored/{message.text}.png").convert("RGBA")
+                        w, h = image.size
+                        listOfClients[id].bandageHeight = h
+                        listOfClients[id].bandageRange = 12 - h
+                        listOfClients[id].pos = (12 - h) // 2
+                        await render_and_edit(message, id, id1)
+                        await acceptChoose(message)
+                        return
                     msg_c = message.text.lstrip("#")
 
                     input1 = msg_c.split(", ")

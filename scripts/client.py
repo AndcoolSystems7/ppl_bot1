@@ -221,7 +221,7 @@ class Client:
         
         
     def reset(self):
-        self.pos = 4
+        self.pos = (12 - self.bandageHeight) // 2
         self.colour = (-1, -1, -1)
         self.first_layer = 1
         self.overlay = True

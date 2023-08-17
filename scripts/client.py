@@ -198,6 +198,7 @@ class Client:
         self.pepe_type = 0
         self.bandageRange = 8
         self.bandageHeight = 4
+        self.view = False
     
         #leftArm leftLeg rightArm rightLeg
         self.x_f = [32, 16, 40, 0]
@@ -348,29 +349,35 @@ class Client:
             img.close()
         if self.bw: self.skin_raw = bw_mode(self.skin_raw).copy()
 
+        r, g, b = self.average_col
         if self.negative: 
             self.skin_raw = transparent_negative(self.skin_raw)
-    
+            aver = 255 - r, 255 - g, 255 - b, 255
+        else: aver = r, g, b, 255
         #render_image = paste_trans(self.skin_raw.copy(), Image.open("res/shadow.png"))
         #self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
         #await self.mc_class.initialize()
         skin = Skin(self.skin_raw)
 
+        if self.absolute_pos > 1:
+            hr = 45 if not self.view else 135
+        else:
+            hr = -45 if not self.view else -135
         
-        img = await skin.render_skin(hr=45 if self.absolute_pos > 1 else -45, 
-                                             vr=-20, 
-                                             ratio = 32, 
-                                             vrc = 15, 
-                                             vrll=self.poses[0][self.pose], 
-                                             vrrl=self.poses[1][self.pose],
-                                             vrla=self.poses[2][self.pose],
-                                             vrra=self.poses[3][self.pose],
-                                             hrla=self.poses[4][self.pose],
-                                             hrra=self.poses[5][self.pose],
-                                             hrll=self.poses[6][self.pose],
-                                             hrrl=self.poses[7][self.pose],
-                                             man_slim=self.slim_cust
-                                             )
+        img = await skin.render_skin(hr=hr, 
+                                    vr=-20, 
+                                    ratio = 32, 
+                                    vrc = 15, 
+                                    vrll=self.poses[0][self.pose], 
+                                    vrrl=self.poses[1][self.pose],
+                                    vrla=self.poses[2][self.pose],
+                                    vrra=self.poses[3][self.pose],
+                                    hrla=self.poses[4][self.pose],
+                                    hrra=self.poses[5][self.pose],
+                                    hrll=self.poses[6][self.pose],
+                                    hrrl=self.poses[7][self.pose],
+                                    man_slim=self.slim_cust
+                                    )
         self.skin_raw.putpixel((0, 3), (255, 0, 0, 255))
         self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))
         self.skin_raw.putpixel((3, 0), (0, 0, 255, 255))
@@ -378,7 +385,7 @@ class Client:
         
         width, height = img.size
         
-        renderBack = Image.new(mode="RGBA", size=(height + 40, height + 40), color=(255, 255, 255, 255))
+        renderBack = Image.new(mode="RGBA", size=(height + 40, height + 40), color=aver)
         
         renderBack.paste(img, (round((height + 40) / 2 - (width / 2)), 20), img)
         

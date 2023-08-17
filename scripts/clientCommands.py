@@ -58,7 +58,7 @@ def init(bot, dp, on_server):
 		if message.from_user.id == 1197005557:
 			id = message.text.split(" ")[1]
 			text = " ".join(message.text.split(" ")[2:])
-			await bot.send_message(id, "Ответ администратора:\n" + text)
+			await bot.send_message(id, text)
 	
 	#---------------------------------------------------------------------------------------------------
 	@dp.message_handler(commands=['help'])

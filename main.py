@@ -177,6 +177,39 @@ if not tech_raboty:
             pass
 
     # ---------------------------------------------------------------------------------------------------
+    @dp.message_handler(commands=["changeStar"])
+    async def send_welcome(message: types.Message):
+        global reviewsList
+        if os.path.isfile("data/reviews.npy"):
+            reviewsListNp = np.load("data/reviews.npy", allow_pickle=True)
+            reviewsLista = reviewsListNp.tolist()
+            if reviewsLista == []:
+                await message.answer(text="Отзывов пока не было(")
+                return
+            id1 = message.chat.id
+            andcool_id = 1197005557
+            if andcool_id == message.from_user.id:
+                msg_id = message.text.split(" ")[1]
+                stars = message.text.split(" ")[2]
+                try:
+                    if int(len(reviewsLista) - int(msg_id)) >= 0:
+                        reviewsLista[int(len(reviewsLista) - int(msg_id))][2] = int(stars)
+                        np.save(
+                            arr=np.array(reviewsLista),
+                            file="data/reviews.npy",
+                            allow_pickle=True,
+                        )
+                        await message.answer(text="Changed!")
+                        reviewsList = reviewsLista
+                    else:
+                        await message.answer(text="Ошибка! Проверьте номер сообщения")
+                except:
+                    await message.answer(text="Ошибка! Проверьте номер сообщения")
+
+        else:
+            pass
+
+    # ---------------------------------------------------------------------------------------------------
     def reloadBadge():
         global badgesList
         try:
@@ -720,7 +753,7 @@ if not tech_raboty:
 
         listOfClients[id].wait_to_support = True
         await message.answer(
-            text="Окей, теперь отправь *одно* сообщение (можно фото с подписью), где описываете вашу проблему или вопрос.",
+            text="Окей, теперь отправь *одно* сообщение (можно *одно* фото с подписью), где описываете вашу проблему или вопрос.",
             parse_mode="Markdown", reply_markup=keyboard1
         )
 
@@ -1189,10 +1222,10 @@ if not tech_raboty:
     async def from_f(message: CallbackQuery):
         tg = link("Телеграм", "https://t.me/andcool_systems")
         ds = link("Дискорд", "https://discordapp.com/users/812990469482610729/")
-        github = link("Гитхаб", "https://github.com/AndcoolSystems7")
+        github = link("Гитхаб", "https://github.com/Andcool-Systems")
         await message.answer()
         await message.message.answer(
-            f"*Контакты разработчика:*\nAndcoolSystems:\n{tg} - AndcoolSystems\n{ds} - AndcoolSystems\n{github} - AndcoolSystems7",
+            f"*Контакты разработчика:*\nAndcoolSystems:\n{tg} - AndcoolSystems\n{ds} - AndcoolSystems\n{github} - Andcool-Systems",
             parse_mode="Markdown",
         )
 
@@ -1454,7 +1487,7 @@ if not tech_raboty:
         )
         text = """Теперь выбери стиль повязки\n
 *Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо\n
-**Повязка сделанна по идее скина топ донатера ModErator5937"""
+**Повязка сделана по идее скина топ донатера ModErator5937"""
         if listOfClients[id].info_id == 0:
             msg = await message.message.answer(text,reply_markup=keyboard1,
             )
@@ -1569,13 +1602,18 @@ if not tech_raboty:
             text="Импортировать настройки", callback_data="imp"
         )
 
+        view_text = "спереди" if listOfClients[id].view else "сзади"
+        view: InlineKeyboardButton = InlineKeyboardButton(
+            text=f"Вид {view_text}", callback_data="view"
+        )
+
         # Создаем объект инлайн-клавиатуры
 
         keyboard3: InlineKeyboardMarkup = InlineKeyboardMarkup()
        
 
 
-        keyboard3.row(up_btn, first_layer_btn, pass_btn)
+        keyboard3.row(up_btn, first_layer_btn, view)
         keyboard3.row(info_btn, overlay_btn, export)
         keyboard3.row(down_btn, pose_btn, importpar)
         keyboard3.row(delete_btn, bodyPart_btn, reset_btn)
@@ -1619,6 +1657,21 @@ if not tech_raboty:
 
         except:
             pass
+
+    # ---------------------------------------------------------------------------------------------------
+    @dp.callback_query_handler(text="view")
+    async def from_f(message: CallbackQuery):
+
+        id1 = message.message.chat.id
+        global listOfClients
+        id = client.find_client(listOfClients, message.message.chat.id)
+        if id == -1:
+            await sessionPizda(message.message)
+            return
+        listOfClients[id].view = not listOfClients[id].view
+
+        await render_and_edit(message.message, id, id1)
+        await start_set(message.message)
 
     # ---------------------------------------------------------------------------------------------------
     @dp.callback_query_handler(text="skintype")

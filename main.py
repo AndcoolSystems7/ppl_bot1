@@ -1441,7 +1441,7 @@ if not tech_raboty:
             return
 
         big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-            text="*Космос-повязка", callback_data="shspace"
+            text="Космос-повязка", callback_data="shspace"
         )
 
         big_button_2: InlineKeyboardButton = InlineKeyboardButton(
@@ -1468,7 +1468,7 @@ if not tech_raboty:
         )
 
         moder: InlineKeyboardButton = InlineKeyboardButton(
-            text="**ModErator", callback_data="moderator"
+            text="*ModErator", callback_data="moderator"
         )
 
         back: InlineKeyboardButton = InlineKeyboardButton(
@@ -1486,8 +1486,7 @@ if not tech_raboty:
             text="Назад", callback_data="colourShapeBack"
         )
         text = """Теперь выбери стиль повязки\n
-*Бот не поддерживает полупрозрачные пиксели на предпросмотре, но в финальном скине всё будет как надо\n
-**Повязка сделана по идее скина топ донатера ModErator5937"""
+*Повязка сделана по идее скина топ донатера ModErator5937"""
         if listOfClients[id].info_id == 0:
             msg = await message.message.answer(text,reply_markup=keyboard1,
             )

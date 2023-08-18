@@ -378,15 +378,34 @@ class Client:
                                     hrrl=self.poses[7][self.pose],
                                     man_slim=self.slim_cust
                                     )
+        
+        img2 = await skin.render_skin(hr=hr, 
+                                    vr=-20, 
+                                    ratio = 32, 
+                                    vrc = 15, 
+                                    vrll=self.poses[0][self.pose], 
+                                    vrrl=self.poses[1][self.pose],
+                                    vrla=self.poses[2][self.pose],
+                                    vrra=self.poses[3][self.pose],
+                                    hrla=self.poses[4][self.pose],
+                                    hrra=self.poses[5][self.pose],
+                                    hrll=self.poses[6][self.pose],
+                                    hrrl=self.poses[7][self.pose],
+                                    man_slim=self.slim_cust,
+                                    display_second_layer=False,
+                                    display_cape=False
+                                    )
         self.skin_raw.putpixel((0, 3), (255, 0, 0, 255))
         self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))
         self.skin_raw.putpixel((3, 0), (0, 0, 255, 255))
 
         
         width, height = img.size
+        width1, height1 = img2.size
         
         renderBack = Image.new(mode="RGBA", size=(height + 40, height + 40), color=aver)
         
+        renderBack.paste(img2, (round((height1 + 40) / 2 - (width1 / 2)), 20), img2)
         renderBack.paste(img, (round((height + 40) / 2 - (width / 2)), 20), img)
         
         return renderBack

@@ -1,9 +1,23 @@
 
-from minepi import Player, Skin
+from minepi import Player, Skin, utils
 from PIL import Image, ImageEnhance, ImageFont, ImageDraw, ImageOps
 from os import listdir
 from os.path import isfile, join
 import json
+
+async def fetchCape(_uuid):
+    capeMojang = await utils.fetch_mojang_cape(uuid=_uuid)
+    capeOptiFine = await utils.fetch_optifine_cape(uuid=_uuid)
+    capeMinecraftCapes = await utils.fetch_minecraftcapes_cape(uuid=_uuid)
+
+    cape = None
+    if capeMinecraftCapes: cape = capeMinecraftCapes
+    elif capeOptiFine:
+        w, h = capeOptiFine.size
+        if w == 92 and h == 44: cape = capeOptiFine.resize((46, 22))
+        else: cape = capeOptiFine
+    elif capeMojang: cape = capeMojang
+    return cape
 
 
 def transparent_negative(img):
@@ -185,6 +199,7 @@ class Client:
         self.waitToReview = -1
         self.ReviewMsg = None
         self.waitToBadge = False
+        self.cape = None
 
         self.pos = 4
         self.colour = (-1, -1, -1)
@@ -251,6 +266,7 @@ class Client:
         else:
             self.skin_raw = self.mc_class._raw_skin
             self.first_skin1 = self.mc_class._raw_skin.copy()
+            self.cape = await fetchCape(self.mc_class._uuid)
 
             w, h = self.skin_raw.size
             if w != 64 or h != 64:
@@ -322,8 +338,6 @@ class Client:
 
             if self.delete_pix: self.skin_raw = clear(self.skin_raw.copy(), (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), self.bandageHeight)
 
-
-
             if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim, self.bandageHeight)
             else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim, self.bandageHeight)
             
@@ -333,7 +347,6 @@ class Client:
             if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, self.bandageHeight)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, self.bandageHeight)) if sl else img)
             if self.overlay: self.skin_raw.paste(img.crop((1, 0, 16, self.bandageHeight)) if sl else img, (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), img.crop((1, 0, 16, self.bandageHeight)) if sl else img)
 
-            
             bond = Image.new('RGBA', (16, self.bandageHeight), (0, 0, 0, 0))
             if self.first_layer == 1: 
                 if self.pepeImage == -1: 
@@ -345,8 +358,8 @@ class Client:
                 bond.paste(img_lining, (0, 0), img_lining)
             bond.paste(img, (0, 0), img)
             self.bandage = bond
-
             img.close()
+
         if self.bw: self.skin_raw = bw_mode(self.skin_raw).copy()
 
         r, g, b = self.average_col
@@ -355,9 +368,9 @@ class Client:
             aver = 255 - r, 255 - g, 255 - b, 255
         else: aver = r, g, b, 255
         #render_image = paste_trans(self.skin_raw.copy(), Image.open("res/shadow.png"))
-        #self.mc_class = Player(name="abc", raw_skin=self.skin_raw)
-        #await self.mc_class.initialize()
-        skin = Skin(self.skin_raw)
+
+        if self.cape != None: skin = Skin(self.skin_raw, raw_cape=self.cape)
+        else: skin = Skin(self.skin_raw)
 
         if self.absolute_pos > 1:
             hr = 45 if not self.view else 135
@@ -367,7 +380,7 @@ class Client:
         img = await skin.render_skin(hr=hr, 
                                     vr=-20, 
                                     ratio = 32, 
-                                    vrc = 15, 
+                                    vrc = 10, 
                                     vrll=self.poses[0][self.pose], 
                                     vrrl=self.poses[1][self.pose],
                                     vrla=self.poses[2][self.pose],
@@ -382,7 +395,7 @@ class Client:
         img2 = await skin.render_skin(hr=hr, 
                                     vr=-20, 
                                     ratio = 32, 
-                                    vrc = 15, 
+                                    vrc = 10, 
                                     vrll=self.poses[0][self.pose], 
                                     vrrl=self.poses[1][self.pose],
                                     vrla=self.poses[2][self.pose],
@@ -392,8 +405,7 @@ class Client:
                                     hrll=self.poses[6][self.pose],
                                     hrrl=self.poses[7][self.pose],
                                     man_slim=self.slim_cust,
-                                    display_second_layer=False,
-                                    display_cape=False
+                                    display_second_layer=False
                                     )
         self.skin_raw.putpixel((0, 3), (255, 0, 0, 255))
         self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))

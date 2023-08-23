@@ -154,9 +154,6 @@ class Quote(Resource):
 					badgeId = findBadge(badgesList, int(x))
 					emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
 								
-						
-
-
 					return {"status": "success",
 	      					"balance": balance,
 							"badge": emoji1,

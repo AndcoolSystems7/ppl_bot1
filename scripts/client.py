@@ -20,6 +20,20 @@ async def fetchCape(_uuid):
     return cape
 
 
+
+def slowPaste(img, imgToPaste, pos):
+    _img = img.copy()
+    _imgToPaste = imgToPaste.copy()
+    w, h = _imgToPaste.size
+
+    for y in range(h):
+        for x in range(w):
+            r, g, b, t = _imgToPaste.getpixel((x, y))
+            try: 
+                _img.putpixel((x + pos[0], y + pos[1]), (r, g, b, t))
+            except: pass
+    return _img
+
 def transparent_negative(img):
     rgb_im = img.convert('RGBA')
     for y in range(64):
@@ -110,9 +124,10 @@ def crop(img, abs, slim, height):
     if abs > 1:
         img_left = image_o.crop((0, 0, 8, height))
         img_right = image_o.crop((8, 0, 16, height))
+        
         image_o = Image.new('RGBA', (16, height), (0, 0, 0, 0))
-        image_o.paste(img_right, (0, 0), img_right)
-        image_o.paste(img_left, (8 if not (slim and (abs == 0 or img == "res/pepes/pepe1.png" or abs == 2)) else 6, 0), img_left)
+        image_o = slowPaste(image_o, img_right, (0, 0))
+        image_o = slowPaste(image_o, img_left, (8 if not (slim and (abs == 0 or img == "res/pepes/pepe1.png" or abs == 2)) else 6, 0))
 
     return image_o
     
@@ -340,7 +355,8 @@ class Client:
 
             if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim, self.bandageHeight)
             else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim, self.bandageHeight)
-            
+            img.save("opa.png")
+
             if self.pepeImage == -1: img = fill(img.copy(), self.colour)
             
             sl = self.slim and (self.absolute_pos == 0)

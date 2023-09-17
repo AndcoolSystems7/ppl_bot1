@@ -131,14 +131,6 @@ if not tech_raboty:
 
     # ---------------------------------------------------------------------------------------------------
 
-    """@dp.message_handler(commands=['badgesrelll'])
-	async def send_welcome(message: types.Message):
-		global badgesList
-		n_b=[]
-		for x in badgesList:
-			n_b.append([x[0], x[1], x[1]])
-		badgesList = n_b
-		np.save(arr=np.array(badgesList), file="data/badges.npy")"""
     reviewsCommandsButt = [
         f"{'leftRev' if i<len(reviewsList) else 'rightRev'}{i if i<len(reviewsList) else i - len(reviewsList)}"
         for i in range(len(reviewsList) * 2)
@@ -1135,7 +1127,7 @@ if not tech_raboty:
 
         big_button_3: InlineKeyboardButton = InlineKeyboardButton(
             text="Сайт",
-            web_app=WebAppInfo(url="https://colorscheme.ru/color-converter.html"),
+            url="https://colorscheme.ru/color-converter.html",
         )
 
         big_button_5: InlineKeyboardButton = InlineKeyboardButton(
@@ -1148,7 +1140,7 @@ if not tech_raboty:
         keyboard1.row(big_button_5)
         link4 = link("этом сайте", "https://colorscheme.ru/color-converter.html")
         msg = await message.message.answer(
-            f"Теперь отправьте свой цвет в формате *HEX* или *RGB*\nЦвет можно получить на {link4}\nБот принимает цвета в форматах:\n#ffffff\nffffff\n255,255,255\n255, 255, 255 и т.п.",
+            f"Теперь отправьте свой цвет в формате *HEX* или *RGB*\nЦвет можно получить на сайте ниже\nБот принимает цвета в форматах:\n#ffffff\nffffff\n255,255,255\n255, 255, 255 и т.п.",
             parse_mode="Markdown",
             reply_markup=keyboard1,
         )
@@ -1394,7 +1386,7 @@ if not tech_raboty:
         )
 
         custom_btn: InlineKeyboardButton = InlineKeyboardButton(
-            text="Кастомный", callback_data="custom"
+            text="🎨 Кастомный цвет", callback_data="custom"
         )
 
         # Создаем объект инлайн-клавиатуры
@@ -1402,11 +1394,10 @@ if not tech_raboty:
 
         keyboard1.row(shapeButt)
         keyboard1.row(goldenBtn, pwOld)
+        keyboard1.row(custom_btn)
         keyboard1.row(big_button_1, big_button_2, big_button_3)
         keyboard1.row(big_button_4, pink_btn, violet_btn)
         keyboard1.row(orange_btn, white_btn, black_btn)
-
-        keyboard1.row(custom_btn)
 
         if listOfClients[id].info_id == 0:
             msg = await message.answer(

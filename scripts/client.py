@@ -240,14 +240,15 @@ class Client:
         
 
         self.poses = [
-            [0,  20, 10, 0], #vrll
-            [0, -20,-10, 0], #vrrl
-            [0, -20,-10, 0], #vrla
-            [0,  20, 10, 0], #vrra
-            [0,   0,  0, 90], #hrla
-            [0,   0,  0, -90], #hrra
-            [0,   0,  0, 20], #hrll
-            [0,   0,  0, -20] #hrrl
+            [0,  20, 10, 0, 0], #vrll
+            [0, -20,-10, 0, 0], #vrrl
+            [0, -20,-10, 0, 0], #vrla
+            [0,  20, 10, 0, 0], #vrra
+            [0,   0,  0, 90, 90], #hrla
+            [0,   0,  0, -90, -90], #hrra
+            [0,   0,  0, 20, 20], #hrll
+            [0,   0,  0, -20, -20], #hrrl
+            [-20, -20, -20, -20, 40]
         ]
         
         
@@ -355,7 +356,6 @@ class Client:
 
             if self.pepeImage == -1: img = crop("res/pepes/" + str(self.pepes[self.pepe_type]), self.absolute_pos, self.slim, self.bandageHeight)
             else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim, self.bandageHeight)
-            img.save("opa.png")
 
             if self.pepeImage == -1: img = fill(img.copy(), self.colour)
             
@@ -394,7 +394,7 @@ class Client:
             hr = -45 if not self.view else -135
         
         img = await skin.render_skin(hr=hr, 
-                                    vr=-20, 
+                                    vr=self.poses[8][self.pose], 
                                     ratio = 32, 
                                     vrc = 10, 
                                     vrll=self.poses[0][self.pose], 
@@ -409,7 +409,7 @@ class Client:
                                     )
         
         img2 = await skin.render_skin(hr=hr, 
-                                    vr=-20, 
+                                    vr=self.poses[8][self.pose], 
                                     ratio = 32, 
                                     vrc = 10, 
                                     vrll=self.poses[0][self.pose], 

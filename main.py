@@ -580,9 +580,7 @@ if not tech_raboty:
                     if andcool_id == message.message.chat.id
                     else ""
                 )
-                badgeId = findBadge(
-                    badgesList, int(reviewsList[x + (messages_on_page * nowPage)][1])
-                )
+                badgeId = findBadge(badgesList, int(reviewsList[x + (messages_on_page * nowPage)][1]))
                 new_name = "".join(char for char in name if not emoji.is_emoji(char))
                 new_name = new_name if new_name[-1] != " " else new_name[:-1]
                 emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""

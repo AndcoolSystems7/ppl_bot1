@@ -16,10 +16,10 @@ logging.info(f"Running on {server_text} server")
 # print(f"INFO:Running on {server_text} server")
 
 
-from scripts.background import keep_alive
+from background import keep_alive
 
 import aiogram
-import scripts.client as client
+import client as client
 import os
 import emoji
 from PIL import Image
@@ -32,12 +32,12 @@ import time as time1
 from aiogram.utils.markdown import link
 from io import BytesIO
 import numpy as np
-import scripts.da as da
+import da as da
 import aioschedule as schedule
 import asyncio
 from aiogram.utils.exceptions import MessageCantBeDeleted, MessageToDeleteNotFound
 from contextlib import suppress
-import scripts.clientCommands as clientCommands
+import clientCommands as clientCommands
 import math
 import pickle
 
@@ -132,7 +132,7 @@ if not tech_raboty:
     # ---------------------------------------------------------------------------------------------------
 
     reviewsCommandsButt = [
-        f"{'leftRev' if i<len(reviewsList) else 'rightRev'}{i if i<len(reviewsList) else i - len(reviewsList)}"
+        f"{'leftRev' if i < len(reviewsList) else 'rightRev'}{i if i < len(reviewsList) else i - len(reviewsList)}"
         for i in range(len(reviewsList) * 2)
     ]
     # ---------------------------------------------------------------------------------------------------
@@ -228,7 +228,7 @@ if not tech_raboty:
 
     # ---------------------------------------------------------------------------------------------------
 
-    @dp.message_handler(commands=["badges"])
+    """@dp.message_handler(commands=["badges"])
     async def send_welcome(message: types.Message):
         list = da.get_list()
         global badgesList
@@ -325,9 +325,9 @@ if not tech_raboty:
                 keyboard1.row(payDestr)
                 await message.answer(
                     text=destr[1], reply_markup=keyboard1, parse_mode="Markdown"
-                )
+                )"""
 
-    # ---------------------------------------------------------------------------------------------------
+    """# ---------------------------------------------------------------------------------------------------
     @dp.callback_query_handler(text="delbad")
     async def pay(message: CallbackQuery):
         try:
@@ -435,7 +435,7 @@ if not tech_raboty:
             listOfClients[id].waitToBadge = False
 
     # ---------------------------------------------------------------------------------------------------
-
+"""
     @dp.message_handler(commands=["reviews"])
     async def send_welcome(message: types.Message):
         global andcool_id
@@ -511,7 +511,7 @@ if not tech_raboty:
         rew = "".join(reviewTxt)
         try:
             await message.answer(
-                text=f"Отзывы:\n{rew}*Страница 1-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 2) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges",
+                text=f"Отзывы:\n{rew}*Страница 1-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 2) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review",
                 parse_mode="Markdown",
                 reply_markup=keyboard1,
             )
@@ -607,7 +607,7 @@ if not tech_raboty:
                 c += 1
         try:
             await message.message.edit_text(
-                text=f"Отзывы:\n{rew}*Страница {nowPage+1}-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 2) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review\nХотите бадж возле своего ника? Получите его, отправив команду /badges",
+                text=f"Отзывы:\n{rew}*Страница {nowPage+1}-{pages_count + 1}*\nСредняя оценка: *{round(sum/c, 2) if c != 0 else 'Нет'}*\n\nОставить отзыв можно отправив команду /review",
                 reply_markup=keyboard1,
                 parse_mode="Markdown",
             )
@@ -760,7 +760,6 @@ if not tech_raboty:
 
     # ---------------------------------------------------------------------------------------------------
     async def render_and_edit(message, id, id1):
-        global listOfClients
         bio = BytesIO()
         skin_rer = await listOfClients[id].rerender()
 
@@ -777,8 +776,7 @@ if not tech_raboty:
                 chat_id=listOfClients[id].prewiew_id.chat.id,
                 message_id=listOfClients[id].prewiew_id.message_id,
             )
-        except:
-            pass
+        except: pass
 
     # ---------------------------------------------------------------------------------------------------
     @dp.message_handler(commands=["start"])
@@ -793,27 +791,22 @@ if not tech_raboty:
             now_time_log.hour,
             now_time_log.minute,
         )
-
-        big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-            text="Из файла", callback_data="file"
-        )
-
-        big_button_2: InlineKeyboardButton = InlineKeyboardButton(
-            text="По нику", callback_data="nick"
-        )
-
-        # Создаем объект инлайн-клавиатуры
-        keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup()
-        keyboard.row(big_button_2, big_button_1)
+        
         global welcome_msg
         bio = BytesIO()
         bio.name = f"{message.from_user.id}.png"
         welcome_msg.save(bio, "PNG")
         bio.seek(0)
-        await message.answer_photo(
+
+        caption_text = "Привет👋! Давай начнём.\nОтправь мне свой ник или развёртку скина *как файл*"
+        if now_time_log.month == 10 and now_time_log.day >= 24:
+            caption_text = "*БУ👻!* Страшно? Нет? Ну ладно\n\n" + caption_text
+        
+
+        msg = await message.answer_photo(
             photo=bio,
-            caption="Привет👋! Давай начнём.\nОткуда брать скин?",
-            reply_markup=keyboard,
+            caption=caption_text,
+            parse_mode="Markdown"
         )
         global listOfClients
         if listOfClients == []:
@@ -827,6 +820,15 @@ if not tech_raboty:
                     break
             if not finded:
                 listOfClients.append(client.Client(message.chat.id))
+
+        id = client.find_client(listOfClients, message.chat.id)
+        if id == -1:
+            await sessionPizda(message.message)
+            return
+        
+        listOfClients[id].wait_to_file = 1
+        listOfClients[id].import_msg = msg
+
         f_usr_list = []
 
         if os.path.isfile("data/usr.txt"):
@@ -861,35 +863,6 @@ if not tech_raboty:
         )
         userListFile.close()
         userListFile1.close()
-
-    # ---------------------------------------------------------------------------------------------------
-    @dp.callback_query_handler(text="file")
-    async def from_f(message: CallbackQuery):
-        global listOfClients
-        id = client.find_client(listOfClients, message.message.chat.id)
-        if id == -1:
-            await sessionPizda(message.message)
-            return
-        msg = await message.message.answer(
-            'Хорошо, теперь отправь мне свой скин.\nОбязательно при отправке убери галочку "Сжать изображение"'
-        )
-        await message.message.delete()
-        listOfClients[id].wait_to_file = 1
-        listOfClients[id].import_msg = msg
-
-    # ---------------------------------------------------------------------------------------------------
-    @dp.callback_query_handler(text="nick")
-    async def from_f(message: CallbackQuery):
-        global listOfClients
-        id = client.find_client(listOfClients, message.message.chat.id)
-        if id == -1:
-            await sessionPizda(message.message)
-            return
-        msg = await message.message.answer("Хорошо, теперь отправь мне свой никнейм.")
-        await message.message.delete()
-
-        listOfClients[id].wait_to_file = 2
-        listOfClients[id].import_msg = msg
 
     # ---------------------------------------------------------------------------------------------------
     @dp.message_handler(content_types=["photo"])
@@ -961,15 +934,20 @@ if not tech_raboty:
                         done = False
                         break
 
+            if w == 64 and h == 32:
+                usr_img = client.to64(usr_img.copy())
+            if not await listOfClients[id].init_mc_f(usr_img):
+                await message.answer(
+                    "Это не развёртка скина.\nРазвёртка скина должна иметь разрешение 64x64 или 64x32 пикселя"
+                )
+                return
+            
             if not done:
                 msg_del = await message.answer(
                     "У вашего скина непрозрачный фон!\nПредпросмотр будет некорректным!"
                 )
                 asyncio.create_task(delete_message(msg_del, 10))
-
-            if w == 64 and h == 32:
-                usr_img = client.to64(usr_img.copy())
-            await listOfClients[id].init_mc_f(usr_img)
+            
             listOfClients[id].wait_to_file = 0
             await listOfClients[id].prerender()
             await listOfClients[id].import_msg.delete()
@@ -1073,7 +1051,9 @@ if not tech_raboty:
         "shsilver",
         "shrlbl",
         "shbender",
-        "moderator"
+        "moderator",
+        "monochrome",
+        "nigative"
     ]
 
     @dp.callback_query_handler(text=colour_txt_cu)
@@ -1390,6 +1370,14 @@ if not tech_raboty:
         # Создаем объект инлайн-клавиатуры
         keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
+        now_time_log = datetime.now(pytz.timezone("Etc/GMT-3"))
+
+        if now_time_log.month == 10 and now_time_log.day >= 10: #24
+            heloween_btn: InlineKeyboardButton = InlineKeyboardButton(
+                text="Повязки на Хэллоуин👻", callback_data="heloween"
+            )
+            keyboard1.row(heloween_btn)
+
         keyboard1.row(shapeButt)
         keyboard1.row(goldenBtn, pwOld)
         keyboard1.row(custom_btn)
@@ -1460,6 +1448,14 @@ if not tech_raboty:
             text="*ModErator", callback_data="moderator"
         )
 
+        mono: InlineKeyboardButton = InlineKeyboardButton(
+            text="Монохромная", callback_data="monochrome"
+        )
+
+        nega: InlineKeyboardButton = InlineKeyboardButton(
+            text="Негатив", callback_data="nigative"
+        )
+
         back: InlineKeyboardButton = InlineKeyboardButton(
             text="Назад", callback_data="colourShapeBack"
         )
@@ -1469,6 +1465,7 @@ if not tech_raboty:
         keyboard1.row(gold, moder, silver)
         keyboard1.row(big_button_1, big_button_2, big_button_3)
         keyboard1.row(big_button_4, big_button_5)
+        keyboard1.row(mono, nega)
         keyboard1.row(back)
 
         back: InlineKeyboardButton = InlineKeyboardButton(
@@ -1484,6 +1481,38 @@ if not tech_raboty:
             )
         return msg
 
+    # ---------------------------------------------------------------------------------------------------
+    @dp.callback_query_handler(text="heloween")
+    async def heloween(message: CallbackQuery):
+        global listOfClients
+        id = client.find_client(listOfClients, message.message.chat.id)
+        if id == -1:
+            await sessionPizda(message.message)
+            return
+
+        big_button_1: InlineKeyboardButton = InlineKeyboardButton(
+            text="Космос-повязка", callback_data="shspace"
+        )
+
+        back: InlineKeyboardButton = InlineKeyboardButton(
+            text="Назад", callback_data="colourShapeBack"
+        )
+        
+        keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
+
+        keyboard1.row(back)
+
+        back: InlineKeyboardButton = InlineKeyboardButton(
+            text="Назад", callback_data="colourShapeBack"
+        )
+        text = "Теперь выбери стиль повязки"
+        if listOfClients[id].info_id == 0:
+            msg = await message.message.answer(text,reply_markup=keyboard1,
+            )
+        else:
+            msg = await listOfClients[id].info_id.edit_text(text,reply_markup=keyboard1,
+            )
+        return msg
     # ---------------------------------------------------------------------------------------------------
     @dp.callback_query_handler(text="done")
     async def from_f(message: CallbackQuery):
@@ -2092,11 +2121,11 @@ if not tech_raboty:
         elif message.from_user.is_bot == False:
 
             # if listOfClients[id].delete_mess: await message.delete()
-
+            
             # ---------------------------------------------------------------------------------------------------
-            if listOfClients[id].wait_to_file == 2:
-
+            if listOfClients[id].wait_to_file == 1:
                 done = await listOfClients[id].init_mc_n(message.text)
+                
                 if done == 1 or done == 3:
                     if done == 3:
                         msg_del = await message.answer(
@@ -2169,7 +2198,7 @@ if not tech_raboty:
                         pass
                     await message.delete()
 
-                    secret = ["special-pepehill", "special-heart"]
+                    secret = ["special-pepehill", "special-heart", "flowers"]
                     if message.text in secret:
                         listOfClients[id].pepeImage = str(message.text)
                         listOfClients[id].colour = (0, 0, 0)

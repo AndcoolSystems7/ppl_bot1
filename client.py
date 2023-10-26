@@ -1,5 +1,7 @@
 
-from minepi import Player, Skin, utils
+from minePi.player import Player
+from minePi.skin import Skin
+import minePi.utils as utils
 from PIL import Image, ImageEnhance, ImageFont, ImageDraw, ImageOps
 from os import listdir
 from os.path import isfile, join
@@ -265,13 +267,19 @@ class Client:
 
 
     async def init_mc_f(self, usr_img):
+        w1, h1 = usr_img.size
+        if w1 != 64 and h1 != 64 and h1 != 32:
+            return False
         self.mc_class = Player(name="abc", raw_skin=usr_img)  # create a Player object by UUID
         await self.mc_class.initialize()
+
         self.skin_raw = usr_img
         self.first_skin1 = usr_img.copy()
+
         w, h = self.skin_raw.size
         if w != 64 or h != 64:
             self.skin_raw = self.first_skin1 = to64(self.skin_raw.copy())
+        return True
         
 
     async def init_mc_n(self, name):
@@ -348,7 +356,6 @@ class Client:
         self.average_col = average_colour(img.copy())
         
     async def rerender(self):
-
         self.skin_raw = self.first_skin1.copy()
         if self.colour != (-1, -1, -1):
 
@@ -358,7 +365,6 @@ class Client:
             else:img = crop(f"res/pepes/colored/{self.pepeImage}.png", self.absolute_pos, self.slim, self.bandageHeight)
 
             if self.pepeImage == -1: img = fill(img.copy(), self.colour)
-            
             sl = self.slim and (self.absolute_pos == 0)
             if self.first_layer == 2: self.skin_raw.paste(img.crop((1, 0, 16, self.bandageHeight)) if sl else img, (self.x_f[self.absolute_pos], self.y_f[self.absolute_pos] + self.pos), img.crop((1, 0, 16, self.bandageHeight)) if sl else img)
             if self.overlay: self.skin_raw.paste(img.crop((1, 0, 16, self.bandageHeight)) if sl else img, (self.x_o[self.absolute_pos], self.y_o[self.absolute_pos] + self.pos), img.crop((1, 0, 16, self.bandageHeight)) if sl else img)
@@ -375,7 +381,6 @@ class Client:
             bond.paste(img, (0, 0), img)
             self.bandage = bond
             img.close()
-
         if self.bw: self.skin_raw = bw_mode(self.skin_raw).copy()
 
         r, g, b = self.average_col
@@ -387,7 +392,6 @@ class Client:
 
         if self.cape != None: skin = Skin(self.skin_raw, raw_cape=self.cape)
         else: skin = Skin(self.skin_raw)
-
         if self.absolute_pos > 1:
             hr = 45 if not self.view else 135
         else:
@@ -426,7 +430,6 @@ class Client:
         self.skin_raw.putpixel((0, 3), (255, 0, 0, 255))
         self.skin_raw.putpixel((3, 3), (0, 255, 0, 255))
         self.skin_raw.putpixel((3, 0), (0, 0, 255, 255))
-
         
         width, height = img.size
         width1, height1 = img2.size
@@ -435,7 +438,7 @@ class Client:
         
         renderBack.paste(img2, (round((height1 + 40) / 2 - (width1 / 2)), 20), img2)
         renderBack.paste(img, (round((height + 40) / 2 - (width / 2)), 20), img)
-        
+
         return renderBack
     
     

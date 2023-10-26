@@ -1,4 +1,4 @@
-import donationalerts as daa
+#import donationalerts as daa
 import logging
 import asyncio
 import numpy
@@ -8,10 +8,16 @@ from PIL import Image
 
 
 
-alert = daa.Alert("jCzYqIMrhfX1cn3GeK3B")
+#alert = daa.Alert("jCzYqIMrhfX1cn3GeK3B")
 alerting_id = -1
 if not os.path.isfile("data/donations.npy"):
-    donateList = []
+    donateList = [["ModErator5937", 2197, 1255297867, 2222],
+                  ["ReZoort", 501, 1017884431, 501],
+                  ["veel1en", 400.99, 1084649863, 400.99],
+                  ["rorik", 350, 1418299420, 350],
+                  ["Гамдав", 25, 995824148, 50],
+                  ["Vadalast", 30, 1070500942, 30],
+                  ["_WavyCat_", 25, 792035746, 25]]
     numpy.save(arr=numpy.array(donateList), file="data/donations.npy")
 else: 
     donateList_npy = numpy.load("data/donations.npy")
@@ -49,7 +55,7 @@ def sortir(donateList):
                 donateList[x + 1][0] = topid
     return donateList
 
-@alert.event()
+#@alert.event()
 def new_donation(event):
 
     global donateList

@@ -1,11 +1,11 @@
-import scripts.da as da
+import da as da
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import CallbackQuery
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import logging 
 from aiogram.utils.markdown import link
 from io import BytesIO
-import scripts.help_renderer as help_renderer
+import help_renderer as help_renderer
 import os
 import numpy as np
 def findBadge(list, id1):
@@ -70,7 +70,7 @@ def init(bot, dp, on_server):
 		link1 = link('Пост', 'https://discord.com/channels/447699225078136832/1114275416404922388')
 		link2 = link('сайт', 'https://pplbandagebot.ru')
 		link4 = link('Шейп — Студия Minecraft', 'https://vk.com/shapestd')
-		text7 = '\n\n*ЭТОТ БОТ НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ [ПРОДУКТОМ/УСЛУГОЙ/СОБЫТИЕМ И т.п.] MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С КОМПАНИЕЙ MOJANG ИЛИ MICROSOFT*'
+		text7 = '\n*ЭТОТ БОТ НЕ ЯВЛЯЕТСЯ ОФИЦИАЛЬНЫМ [ПРОДУКТОМ/УСЛУГОЙ/СОБЫТИЕМ И т.п.] MINECRAFT. НЕ ОДОБРЕНО И НЕ СВЯЗАНО С КОМПАНИЕЙ MOJANG ИЛИ MICROSOFT*'
 
 		text6 = f"Полезные ссылки:\n{link1} в Идеях\nОфициальный {link2} проекта\n\n"
 		if on_server:
@@ -97,10 +97,6 @@ def init(bot, dp, on_server):
 			for x in range(count):
 				emote = emotes[x] if x < 3 else ""
 				donate_text = f"{donate_text}{x + 1}. {emote}*{donateList[x][0]}* - {round(float(donateList[x][3]), 2)} *RUB*\n"
-
-			donate_text = donate_text + "\nХотите сюда? Тогда вы можете поддержать разработчика, отправив /donate"
-
-
 
 		bio = BytesIO()
 		bio.name = f'{message.from_user.id}.png'

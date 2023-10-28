@@ -915,6 +915,9 @@ if not tech_raboty:
 
         if listOfClients[id].wait_to_file == 1:
             if document := message.document:
+                if document.file_name.split(".")[-1].lower() != "png": 
+                    await message.reply("Пожалуйста, отправьте файл скина в формате png", parse_mode="Markdown")
+                    return
                 try:
                     await document.download(destination_file=f"{id1}.png")
                 except aiogram.utils.exceptions.FileIsTooBig:
@@ -923,8 +926,12 @@ if not tech_raboty:
                     await message.reply(text1 + text2, parse_mode="Markdown")
                     return
 
-            usr_img = Image.open(f"{id1}.png").convert("RGBA")
-            os.remove(f"{id1}.png")
+            try: 
+                usr_img = Image.open(f"{id1}.png").convert("RGBA")
+            except:
+                await message.reply("Не удалось открыть файл скина!\nПроверьте его целостность", parse_mode="Markdown")
+                os.remove(f"{id1}.png")
+                return
             w, h = usr_img.size
             done = True
             for y_ch in range(3):
@@ -1053,7 +1060,9 @@ if not tech_raboty:
         "shbender",
         "moderator",
         "monochrome",
-        "nigative"
+        "nigative",
+        "witch",
+        "pumpkin"
     ]
 
     @dp.callback_query_handler(text=colour_txt_cu)
@@ -1372,7 +1381,7 @@ if not tech_raboty:
 
         now_time_log = datetime.now(pytz.timezone("Etc/GMT-3"))
 
-        if now_time_log.month == 10 and now_time_log.day >= 10: #24
+        if now_time_log.month == 10 and now_time_log.day >= 24: #24
             heloween_btn: InlineKeyboardButton = InlineKeyboardButton(
                 text="Повязки на Хэллоуин👻", callback_data="heloween"
             )
@@ -1491,7 +1500,11 @@ if not tech_raboty:
             return
 
         big_button_1: InlineKeyboardButton = InlineKeyboardButton(
-            text="Космос-повязка", callback_data="shspace"
+            text="Ведьма🧙‍♀️", callback_data="witch"
+        )
+
+        pumpkin_butt: InlineKeyboardButton = InlineKeyboardButton(
+            text="Тыква🎃", callback_data="pumpkin"
         )
 
         back: InlineKeyboardButton = InlineKeyboardButton(
@@ -1500,11 +1513,9 @@ if not tech_raboty:
         
         keyboard1: InlineKeyboardMarkup = InlineKeyboardMarkup()
 
+        keyboard1.row(big_button_1, pumpkin_butt)
         keyboard1.row(back)
 
-        back: InlineKeyboardButton = InlineKeyboardButton(
-            text="Назад", callback_data="colourShapeBack"
-        )
         text = "Теперь выбери стиль повязки"
         if listOfClients[id].info_id == 0:
             msg = await message.message.answer(text,reply_markup=keyboard1,
@@ -2070,7 +2081,19 @@ if not tech_raboty:
 
         # ---------------------------------------------------------------------------------------------------
         elif listOfClients[id].waitToReview != -1:
-            global reviewsList
+            
+            if os.path.isfile("data/banned.npy"):
+                reviewsListNp = np.load("data/banned.npy")
+                reviewsList = reviewsListNp.tolist()
+                if reviewsList == []:
+                    pass
+                else:
+                    if message.from_user.id in reviewsList:
+                        await message.answer(
+                            "Произошла ошибка при отправке отзыва"
+                        )
+                        return
+
             badgeId = findBadge(badgesList, int(message.from_user.id))
             emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
             await bot.send_message(
@@ -2212,7 +2235,7 @@ if not tech_raboty:
                         await acceptChoose(message)
                         return
                     msg_c = message.text.lstrip("#")
-
+                    print(msg_c)
                     input1 = msg_c.split(", ")
                     input2 = msg_c.split(",")
 

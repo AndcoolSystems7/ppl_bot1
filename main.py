@@ -97,8 +97,7 @@ if not tech_raboty:
         reviewsList = reviewsListNp.tolist()
     else:
         reviewsList = []
-
-    
+        
     # ---------------------------------------------------------------------------------------------------
     @dp.message_handler(commands=["login"])
     async def send_welcome(message: types.Message):
@@ -473,25 +472,14 @@ if not tech_raboty:
                     else ""
                 )
 
-                first = (
-                    str(member.user.first_name)
-                    if member.user.first_name != None
-                    else ""
-                )
-                kast_a = " " if first != "" else ""
-                last = (
-                    (kast_a + str(member.user.last_name))
-                    if member.user.last_name != None
-                    else ""
-                )
-
                 nickId = findBadge(namelist, int(reviewsList[x][1]))
-                name = f"{first}{last}" if nickId == -1 else namelist[nickId][1]
+                name = member.user.full_name if nickId == -1 else namelist[nickId][1]
 
                 badgeId = findBadge(badgesList, int(reviewsList[x][1]))
                 emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
                 new_name = "".join(char for char in name if not emoji.is_emoji(char))
                 new_name = new_name if new_name[-1] != " " else new_name[:-1]
+
                 date = reviewsList[x][0].split("\n")[0]
                 mess = "\n".join(reviewsList[x][0].split("\n")[1:])
 
@@ -559,21 +547,11 @@ if not tech_raboty:
                     int(reviewsList[x + (messages_on_page * nowPage)][1]),
                 )
 
-                first = (
-                    str(member.user.first_name)
-                    if member.user.first_name != None
-                    else ""
-                )
-                kast_a = " " if first != "" else ""
-                last = (
-                    (kast_a + str(member.user.last_name))
-                    if member.user.last_name != None
-                    else ""
-                )
+        
                 nickId = findBadge(
                     namelist, int(reviewsList[x + (messages_on_page * nowPage)][1])
                 )
-                name = f"{first}{last}" if nickId == -1 else namelist[nickId][1]
+                name = member.user.full_name if nickId == -1 else namelist[nickId][1]
 
                 msg_id = (
                     f"({len(reviewsList) - (x + (messages_on_page * nowPage))}) ({reviewsList[x + (messages_on_page * nowPage)][1]})"
@@ -584,8 +562,8 @@ if not tech_raboty:
                 new_name = "".join(char for char in name if not emoji.is_emoji(char))
                 new_name = new_name if new_name[-1] != " " else new_name[:-1]
                 emoji1 = badgesList[badgeId][1] if badgeId != -1 else ""
+                date = reviewsList[x + (messages_on_page * nowPage)][0].split("\n")[0]
 
-                date = reviewsList[x][0].split("\n")[0]
                 mess = "\n".join(
                     reviewsList[x + (messages_on_page * nowPage)][0].split("\n")[1:]
                 )
@@ -596,7 +574,7 @@ if not tech_raboty:
                 reviewTxt.append(
                     f"*{new_name}{emoji1} {date}\n{star}{mess} {msg_id}\n\n"
                 )
-            except:
+            except Exception as e:
                 pass
         rew = "".join(reviewTxt)
         c = 0
@@ -932,6 +910,8 @@ if not tech_raboty:
                 await message.reply("Не удалось открыть файл скина!\nПроверьте его целостность", parse_mode="Markdown")
                 os.remove(f"{id1}.png")
                 return
+            
+            os.remove(f"{id1}.png")
             w, h = usr_img.size
             done = True
             for y_ch in range(3):
@@ -2083,12 +2063,12 @@ if not tech_raboty:
         elif listOfClients[id].waitToReview != -1:
             
             if os.path.isfile("data/banned.npy"):
-                reviewsListNp = np.load("data/banned.npy")
-                reviewsList = reviewsListNp.tolist()
-                if reviewsList == []:
+                bannedListNP = np.load("data/banned.npy")
+                bannedList = bannedListNP.tolist()
+                if bannedList == []:
                     pass
                 else:
-                    if message.from_user.id in reviewsList:
+                    if message.from_user.id in bannedList:
                         await message.answer(
                             "Произошла ошибка при отправке отзыва"
                         )
@@ -2121,7 +2101,7 @@ if not tech_raboty:
                     f"{now_time_format}:*\n{message.text}",
                     message.from_user.id,
                     int(listOfClients[id].waitToReview),
-                ],
+                ]
             )
             await listOfClients[id].ReviewMsg.delete()
             global reviewsCommandsButt
@@ -2129,9 +2109,7 @@ if not tech_raboty:
                 f"{'leftRev' if i<len(reviewsList) else 'rightRev'}{i if i<len(reviewsList) else i - len(reviewsList)}"
                 for i in range(len(reviewsList) * 2)
             ]
-            np.save(
-                arr=np.array(reviewsList), file="data/reviews.npy", allow_pickle=True
-            )
+            np.save(arr=np.array(reviewsList), file="data/reviews.npy", allow_pickle=True)
             listOfClients[id].waitToReview = -1
         # ---------------------------------------------------------------------------------------------------
         elif listOfClients[id].wait_to_support:
